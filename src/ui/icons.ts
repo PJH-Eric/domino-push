@@ -53,6 +53,7 @@ export const ICONS = {
   grid: '<path d="M4 4h16v16H4zM4 12h16M12 4v16"/>',
   sandbox: '<path d="M3 20h18"/><rect x="5" y="9" width="3" height="11"/><rect x="10.5" y="6" width="3" height="14" transform="rotate(12 12 13)"/><rect x="16" y="10" width="3" height="10"/>',
   flag: '<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8 14c1.2 1.8 2.5 2.5 4 2.5s2.8-.7 4-2.5"/><circle cx="9" cy="10" r=".9" fill="currentColor"/><circle cx="15" cy="10" r=".9" fill="currentColor"/>',
   camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
 } as const
 

@@ -21,7 +21,7 @@ function mk(x: number, z: number, a: number, o: ShapeOpts): DominoSpec {
 }
 
 /** 沿一串密集點等弧長取樣，面向切線方向 */
-function alongPolyline(pts: P[], gap: number, o: ShapeOpts, skipFirst = false): DominoSpec[] {
+export function alongPolyline(pts: P[], gap: number, o: ShapeOpts, skipFirst = false): DominoSpec[] {
   const out: DominoSpec[] = []
   if (pts.length < 2) return out
   const cum = [0]

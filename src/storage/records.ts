@@ -15,13 +15,15 @@ export interface Stats {
   sandboxBestFallen: number
   saves: number
   shapes: string[]
+  /** 幼兒園模式過的關卡序號 */
+  kids: number[]
   unlocked: Record<string, number>
 }
 
 const KEY = 'domino-push.records.v1'
 
 function empty(): Stats {
-  return { pushes: 0, totalFallen: 0, bestRun: 0, bestCombo: 0, placed: 0, randomWins: 0, sandboxRuns: 0, sandboxBest: 0, sandboxBestFallen: 0, saves: 0, shapes: [], unlocked: {} }
+  return { pushes: 0, totalFallen: 0, bestRun: 0, bestCombo: 0, placed: 0, randomWins: 0, sandboxRuns: 0, sandboxBest: 0, sandboxBestFallen: 0, saves: 0, shapes: [], kids: [], unlocked: {} }
 }
 
 export function loadStats(): Stats {
@@ -34,6 +36,7 @@ export function loadStats(): Stats {
       const v = Number(r[k])
       if (Number.isFinite(v) && v >= 0) s[k] = Math.min(1e9, Math.round(v))
     }
+    if (Array.isArray(r.kids)) s.kids = r.kids.filter((x): x is number => Number.isInteger(x) && x > 0 && x < 100).slice(0, 100)
     if (Array.isArray(r.shapes)) s.shapes = r.shapes.filter((x): x is string => typeof x === 'string').slice(0, 10)
     if (r.unlocked && typeof r.unlocked === 'object') {
       for (const [k, v] of Object.entries(r.unlocked)) if (/^[a-z0-9_]+$/.test(k) && Number.isFinite(Number(v))) s.unlocked[k] = Number(v)
@@ -91,6 +94,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'sb_5000', icon: 'target', progress: (c) => [c.s.sandboxBest, 5000] },
   { id: 'sb_allfall', icon: 'target', progress: (c) => [c.run?.mode === 'sandbox' && c.run.allFell && (c.run.total ?? 0) >= 100 ? 1 : 0, 1] },
   { id: 'sb_save', icon: 'save', progress: (c) => [c.s.saves, 1] },
+  { id: 'kids_first', icon: 'star', progress: (c) => [c.s.kids.length, 1] },
+  { id: 'kids_all', icon: 'star', progress: (c) => [c.s.kids.length, 12] },
 ]
 
 function ctx(s: Stats, run?: AchCtx['run']): AchCtx {
@@ -162,6 +167,17 @@ export function recordRun(run: NonNullable<AchCtx['run']> & { win?: boolean }): 
     s.sandboxBestFallen = Math.max(s.sandboxBestFallen, run.fallen)
   }
   return commit(s, run)
+}
+
+/** 幼兒園關卡過關 */
+export function recordKid(no: number, fallen: number, combo: number): string[] {
+  const s = loadStats()
+  s.pushes++
+  s.totalFallen += fallen
+  s.bestRun = Math.max(s.bestRun, fallen)
+  s.bestCombo = Math.max(s.bestCombo, combo)
+  if (!s.kids.includes(no)) s.kids.push(no)
+  return commit(s)
 }
 
 export function recordShape(tool: string): void {

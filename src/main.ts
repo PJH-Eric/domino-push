@@ -9,6 +9,7 @@ import { gameScreen } from './screens/game'
 import { homeScreen } from './screens/home'
 import { howtoScreen } from './screens/howto'
 import { levelsScreen } from './screens/levels'
+import { kidsDrawScreen, kidsGameScreen, kidsHomeScreen, kidsLevelsScreen, kidsShowScreen } from './screens/kids'
 import { recordsScreen } from './screens/records'
 import { sandboxScreen } from './screens/sandbox'
 import { onUnlock } from './storage/records'
@@ -63,6 +64,11 @@ async function boot(): Promise<void> {
   app.register('random', (a, r) => gameScreen(a, { seed: r.to === 'random' ? r.seed : 1 }))
   app.register('sandbox', (a) => sandboxScreen(a))
   app.register('records', (a, r) => recordsScreen(a, r.to === 'records' ? r.tab : 0))
+  app.register('kids', (a) => kidsHomeScreen(a))
+  app.register('kidsLevels', (a) => kidsLevelsScreen(a))
+  app.register('kidsGame', (a, r) => kidsGameScreen(a, r.to === 'kidsGame' ? r.level : 1))
+  app.register('kidsDraw', (a) => kidsDrawScreen(a))
+  app.register('kidsShow', (a) => kidsShowScreen(a))
   app.register('howto', (a, r) => howtoScreen(a, r.to === 'howto' ? r.from : undefined))
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('turbo')) setMaxSteps(60)
   if (import.meta.env.DEV) (window as unknown as { __dpGo?: (r: unknown) => void }).__dpGo = (r) => app.go(r as Parameters<App['go']>[0])

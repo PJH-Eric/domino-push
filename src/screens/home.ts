@@ -45,6 +45,7 @@ export function homeScreen(app: App): Screen {
         h('div', { class: 'home-btns' },
           Button({ label: t('home.challenge'), icon: 'flag', variant: 'primary', size: 'lg', onClick: () => { audio.click(); app.go({ to: 'levels' }) } }),
           Button({ label: t('home.sandbox'), icon: 'sandbox', variant: 'gold', size: 'lg', onClick: () => { audio.click(); app.go({ to: 'sandbox' }) } }),
+          Button({ label: t('home.kids'), icon: 'smile', variant: 'success', size: 'lg', class: 'home-kids', onClick: () => { audio.click(); app.go({ to: 'kids' }) } }),
           Button({ label: t('home.records'), icon: 'star', variant: 'blue', size: 'lg', onClick: () => { audio.click(); app.go({ to: 'records' }) } }),
           Button({ label: t('home.howto'), icon: 'book', size: 'lg', onClick: () => { audio.click(); app.go({ to: 'howto', from: { to: 'home' } }) } }),
         ),

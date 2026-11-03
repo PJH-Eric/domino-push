@@ -417,6 +417,11 @@ export class Stage {
     this.ghostMat.opacity = valid ? 0.55 : 0.45
   }
 
+  /** 預覽骨牌的透明度（幼兒園模式發光呼吸用） */
+  ghostOpacity(v: number): void {
+    ;(this.ghosts.material as THREE.MeshStandardMaterial).opacity = v
+  }
+
   /** 多張預覽（沙盒圖形工具） */
   showGhosts(list: DominoSpec[], valid = true): void {
     const n = Math.min(list.length, 400)

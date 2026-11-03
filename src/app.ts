@@ -31,6 +31,11 @@ export type Route =
   | { to: 'sandbox' }
   | { to: 'howto'; from?: Route }
   | { to: 'records'; tab?: number }
+  | { to: 'kids' }
+  | { to: 'kidsLevels' }
+  | { to: 'kidsGame'; level: number }
+  | { to: 'kidsDraw' }
+  | { to: 'kidsShow' }
 
 type Factory = (app: App, r: Route) => Screen
 
