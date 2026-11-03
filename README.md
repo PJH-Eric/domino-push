@@ -29,6 +29,7 @@ Windows 可直接雙擊 `啟動遊戲.bat`（第一次會自動 `npm install`，
 | `npm run build` | 正式建置到 `dist/` |
 | `npm run seo` | 建置後注入 GA4 與 SEO、產生 sitemap（部署 workflow 會自動執行） |
 | `npm run verify` | 型別檢查＋測試＋建置 |
+| `npm run e2e` | 瀏覽器煙霧測試（需先 `npm run dev`，並安裝 Playwright） |
 
 開發用網址參數：`?turbo` 會加快物理模擬（自動化截圖用，只在 `npm run dev` 有效）。
 

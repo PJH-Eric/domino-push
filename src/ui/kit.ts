@@ -488,7 +488,7 @@ export function openModal(o: { title: string; body: Node; footer?: Node; onClose
   }
   requestAnimationFrame(() => {
     // 優先聚焦內容裡的第一顆按鈕，其次才是關閉鈕或捲動區
-    const first = sa.viewport.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled])') ?? dialog.querySelector<HTMLElement>(FOCUSABLE)
+    const first = sa.viewport.querySelector<HTMLElement>('.btn-primary:not([disabled])') ?? sa.viewport.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled])') ?? dialog.querySelector<HTMLElement>(FOCUSABLE)
     first?.focus({ preventScroll: true })
   })
   return { close, el: dialog }

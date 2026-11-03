@@ -314,7 +314,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
   const showResult = (stars: number, used: number, newBest: boolean) => {
     const st = h('div', { class: 'result-stars', attrs: { role: 'img', 'aria-label': t('common.starsAria', { n: stars }) } })
     for (let i = 0; i < 3; i++) st.appendChild(icon('star'))
-    const lit = () => st.querySelectorAll('svg').forEach((s, i) => { if (i < stars) { setTimeout(() => { s.classList.add('lit'); audio.star(i) }, getSettings().reduceMotion ? 0 : 250 + i * 280) } })
+    const lit = () => st.querySelectorAll('svg').forEach((s, i) => { if (i < stars) { setTimeout(() => { s.classList.add('lit'); s.style.color = 'var(--gold)'; audio.star(i) }, getSettings().reduceMotion ? 0 : 250 + i * 280) } })
     const next = !isRandom ? levelByNo(level.no + 1) : undefined
     const card = h('div', { class: 'result-body', attrs: { 'data-result-share': '' } },
       h('p', { class: 'result-level', text: title() }),
@@ -371,7 +371,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
   renderAll()
   refresh()
   // 開發與自動測試用：直接擺上標準解
-  if (import.meta.env.DEV) { const w = window as unknown as { __dpSolve?: () => void; __dpResult?: (n: number) => void }; w.__dpSolve = () => { pl.load(level.solution.map((d) => ({ ...d }))); refresh() }; w.__dpResult = (n) => showResult(n, level.star3 + 3 - n, n === 3) }
+  if (import.meta.env.DEV) { const w = window as unknown as { __dpSolve?: () => void; __dpResult?: (n: number) => void }; w.__dpSolve = () => { pl.load(level.solution.map((d) => ({ ...d }))); refresh() }; w.__dpResult = (n) => showResult(n, level.star3 + 3 - n, n === 3); (w as unknown as { __dpSolutionScreen?: () => { x: number; y: number }[] }).__dpSolutionScreen = () => level.solution.map((d) => stage.project(d.x, (d.y ?? 0) + 0.02, d.z)) }
 
   return {
     name: 'game',

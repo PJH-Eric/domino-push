@@ -14,7 +14,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "seo": "node scripts/inject-seo.mjs",
-    "verify": "npm run typecheck && npm run test && npm run build"
+    "verify": "npm run typecheck && npm run test && npm run build",
+    "e2e": "node scripts/e2e-smoke.cjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
