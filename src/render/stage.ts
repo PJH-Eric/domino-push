@@ -610,8 +610,25 @@ function pieceMesh(p: Piece): THREE.Object3D {
     m.userData.home = { p: m.position.clone(), q: m.quaternion.clone() }
     return m
   }
-  // 蹺蹺板：支點＋木板（木板是可動部分）
   const g = new THREE.Group()
+  if (p.type === 'lever') {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, p.h - 0.08, 12), toneMat('dark'))
+    post.position.set(p.x, (p.h - 0.08) / 2, p.z)
+    post.castShadow = true
+    g.add(post)
+    const arm = new THREE.Mesh(new RoundedBoxGeometry(p.len, 0.14, 0.22, 2, 0.05), toneMat('green'))
+    arm.name = 'mover'
+    arm.position.set(p.x, p.h, p.z)
+    arm.rotation.y = p.a
+    arm.castShadow = arm.receiveShadow = true
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.06, 12), toneMat('yellow'))
+    cap.position.y = 0.1
+    arm.add(cap)
+    arm.userData.home = { p: arm.position.clone(), q: arm.quaternion.clone() }
+    g.add(arm)
+    return g
+  }
+  // 蹺蹺板：支點＋木板（木板是可動部分）
   const f = facing(p.a)
   const base = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.3, p.h, 3), toneMat('dark'))
   base.position.set(p.x, p.h / 2, p.z)

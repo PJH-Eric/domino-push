@@ -67,7 +67,17 @@ export interface SeesawPiece {
   tilt: number
 }
 
-export type Piece = BoxPiece | BlockPiece | BallPiece | SeesawPiece
+/** 旋轉槓桿：直立支柱上的水平橫桿，繞垂直軸轉動（a＝橫桿方向，h＝橫桿高度） */
+export interface LeverPiece {
+  type: 'lever'
+  x: number
+  z: number
+  len: number
+  a: number
+  h: number
+}
+
+export type Piece = BoxPiece | BlockPiece | BallPiece | SeesawPiece | LeverPiece
 
 /** 可擺放區（綠色桌墊）。a 為旋轉角，y 為表面高度 */
 export interface Zone {

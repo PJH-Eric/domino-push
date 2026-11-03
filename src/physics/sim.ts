@@ -1,6 +1,6 @@
 import type RAPIER_NS from '@dimforge/rapier3d-compat'
 import { dims, facing } from '../core/geom'
-import type { BallPiece, BlockPiece, BoxPiece, DominoSpec, Piece, SeesawPiece } from '../core/types'
+import type { BallPiece, BlockPiece, BoxPiece, DominoSpec, LeverPiece, Piece, SeesawPiece } from '../core/types'
 
 type R = typeof RAPIER_NS
 type Body = RAPIER_NS.RigidBody
@@ -75,7 +75,7 @@ export class Sim {
     this.queue = new R.EventQueue(true)
     // 桌面：一大塊靜態地板（上表面 y = 0）
     const ground = this.world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, -0.5, 0))
-    this.world.createCollider(R.ColliderDesc.cuboid(200, 0.5, 200).setFriction(0.7), ground)
+    this.world.createCollider(R.ColliderDesc.cuboid(200, 0.5, 200).setFriction(1.0), ground)
   }
 
   /* ───── 建立物件 ───── */
@@ -120,6 +120,8 @@ export class Sim {
         return this.addBall(p)
       case 'seesaw':
         return this.addSeesaw(p)
+      case 'lever':
+        return this.addLever(p)
     }
   }
 
@@ -129,7 +131,7 @@ export class Sim {
       R.RigidBodyDesc.dynamic().setTranslation(p.x, p.y, p.z).setRotation(yawPitch(p.a ?? 0)).setAngularDamping(0.1).setCanSleep(true),
     )
     const c = this.world.createCollider(
-      R.ColliderDesc.cuboid(p.sx / 2, p.sy / 2, p.sz / 2).setDensity(0.8).setFriction(0.6).setRestitution(0.02)
+      R.ColliderDesc.cuboid(p.sx / 2, p.sy / 2, p.sz / 2).setDensity(0.35).setFriction(0.6).setRestitution(0.02)
         .setActiveEvents(R.ActiveEvents.CONTACT_FORCE_EVENTS).setContactForceEventThreshold(0.6),
       body,
     )
@@ -144,7 +146,7 @@ export class Sim {
       R.RigidBodyDesc.dynamic().setTranslation(p.x, p.y, p.z).setAngularDamping(0.05).setLinearDamping(0.02).setCanSleep(true).setCcdEnabled(true),
     )
     const c = this.world.createCollider(
-      R.ColliderDesc.ball(p.r).setDensity(2.2).setFriction(0.5).setRestitution(0.1)
+      R.ColliderDesc.ball(p.r).setDensity(1.4).setFriction(0.5).setRestitution(0.1)
         .setActiveEvents(R.ActiveEvents.CONTACT_FORCE_EVENTS).setContactForceEventThreshold(0.6),
       body,
     )
@@ -168,14 +170,30 @@ export class Sim {
       body,
     )
     // 繞木板寬度方向（本地 Z）轉動
-    const f = facing(p.a)
-    const axis = { x: -f.z, y: 0, z: f.x }
-    const jd = R.JointData.revolute({ x: 0, y: pivotH / 2, z: 0 }, { x: 0, y: -plankT / 2, z: 0 }, axis)
-    // revolute 軸在兩個本地座標系定義；本地軸統一用 (0,0,1)
-    jd.axis = { x: 0, y: 0, z: 1 }
+    // 轉軸在兩個物件的本地座標系都是 Z（木板寬度方向）
+    const jd = R.JointData.revolute({ x: 0, y: pivotH / 2, z: 0 }, { x: 0, y: -plankT / 2, z: 0 }, { x: 0, y: 0, z: 1 })
     this.world.createImpulseJoint(jd, base, body, true)
     body.sleep()
     return this.register(body, c, { kind: 'plank', piece: p, h: plankT, y0: pivotH, target: false })
+  }
+
+  private addLever(p: LeverPiece): number {
+    const R = this.R
+    const post = this.world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(p.x, (p.h - 0.08) / 2, p.z))
+    this.world.createCollider(R.ColliderDesc.cylinder((p.h - 0.08) / 2, 0.09).setFriction(0.5), post)
+    const body = this.world.createRigidBody(
+      R.RigidBodyDesc.dynamic().setTranslation(p.x, p.h, p.z).setRotation(yawPitch(p.a)).setAngularDamping(2.0).setCanSleep(true),
+    )
+    const c = this.world.createCollider(
+      R.ColliderDesc.cuboid(p.len / 2, 0.07, 0.11).setDensity(0.5).setFriction(0.4)
+        .setActiveEvents(R.ActiveEvents.CONTACT_FORCE_EVENTS).setContactForceEventThreshold(0.6),
+      body,
+    )
+    // 繞垂直軸轉動：橫桿只能水平旋轉
+    const jd = R.JointData.revolute({ x: 0, y: p.h - (p.h - 0.08) / 2, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 1, z: 0 })
+    this.world.createImpulseJoint(jd, post, body, true)
+    body.sleep()
+    return this.register(body, c, { kind: 'plank', piece: p, h: 0.14, y0: p.h, target: false })
   }
 
   private register(body: Body, c: RAPIER_NS.Collider, i: Omit<BodyInfo, 'fallen' | 'tilt' | 'fallAt' | 'removed'>): number {
