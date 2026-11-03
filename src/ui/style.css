@@ -361,8 +361,10 @@ h1, h2, h3, p { margin: 0; }
 @media (max-height: 520px) and (orientation: landscape) {
   .home-card { display: grid; grid-template-columns: auto minmax(240px, 320px); align-items: center; column-gap: 24px; row-gap: 8px; width: auto; }
   .home-card .sign { grid-row: span 2; }
-  .home-btns { gap: 8px; }
-  .home-btns .btn-lg { min-height: 48px; font-size: 17px; }
+  .home-btns { gap: 6px; }
+  .home-btns .btn-lg { min-height: 42px; font-size: 16px; padding-top: 4px; padding-bottom: 4px; }
+  .home-card { padding: 0 14px 4px; }
+  .home { padding-top: calc(54px + var(--safe-t)); }
   .home-sub { grid-column: 2; }
   .result-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
   .result-split .result-actions { grid-template-columns: 1fr; }
