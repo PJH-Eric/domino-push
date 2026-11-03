@@ -329,7 +329,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
       newBest ? h('span', { class: 'tag tag-ok', text: t('result.newBest') }) : null,
       stars < 3 ? h('p', { class: 'field-hint', text: t('result.tip3', { n: level.star3 }) }) : null,
     )
-    const body = h('div', { class: 'result-body' }, card)
+    const body = h('div', { class: 'result-body result-split' }, card)
     const actions = h('div', { class: 'result-actions' })
     if (next) actions.append(Button({ label: t('result.next'), icon: 'play', variant: 'primary', class: 'wide', onClick: () => { result?.close(); app.go({ to: 'game', level: next.no }) } }))
     if (isRandom) actions.append(Button({ label: t('result.nextRandom'), icon: 'dice', variant: 'gold', class: 'wide', onClick: () => { result?.close(); app.go({ to: 'random', seed: Math.floor(Math.random() * 900000) + 100000 }) } }))
@@ -371,7 +371,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
   renderAll()
   refresh()
   // 開發與自動測試用：直接擺上標準解
-  if (import.meta.env.DEV) (window as unknown as { __dpSolve?: () => void }).__dpSolve = () => { pl.load(level.solution.map((d) => ({ ...d }))); refresh() }
+  if (import.meta.env.DEV) { const w = window as unknown as { __dpSolve?: () => void; __dpResult?: (n: number) => void }; w.__dpSolve = () => { pl.load(level.solution.map((d) => ({ ...d }))); refresh() }; w.__dpResult = (n) => showResult(n, level.star3 + 3 - n, n === 3) }
 
   return {
     name: 'game',

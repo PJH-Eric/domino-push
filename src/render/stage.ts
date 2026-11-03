@@ -527,22 +527,24 @@ export class Stage {
   fitView(top = false, animate = true): void {
     const b = this.bounds
     const c = this.center()
-    const w = b.maxX - b.minX + 2
-    const d = b.maxZ - b.minZ + 2
     const fov = (this.camera.fov * Math.PI) / 180
     const aspect = this.camera.aspect
+    // 直向窄螢幕而關卡是橫長形時，鏡頭轉 90° 從側面看，讓長邊變成畫面的上下方向
+    const sideways = aspect < 0.85 && b.maxX - b.minX > (b.maxZ - b.minZ) * 1.15
+    const w = (sideways ? b.maxZ - b.minZ : b.maxX - b.minX) + 2
+    const d = (sideways ? b.maxX - b.minX : b.maxZ - b.minZ) + 2
     let dist: number
     let pos: THREE.Vector3
     if (top) {
       dist = Math.max(d / 2 / Math.tan(fov / 2), w / 2 / Math.tan(fov / 2) / aspect) * 1.08
-      pos = new THREE.Vector3(c.x, dist, c.z + 0.01)
+      pos = sideways ? new THREE.Vector3(c.x - 0.01, dist, c.z) : new THREE.Vector3(c.x, dist, c.z + 0.01)
     } else {
       const elev = 0.95 // 約 54°
-      const need = Math.max(d * 0.75 / Math.tan(fov / 2), w / 2 / Math.tan(fov / 2) / aspect) * 1.0
+      const need = Math.max((d * 0.72) / Math.tan(fov / 2), w / 2 / Math.tan(fov / 2) / aspect)
       dist = Math.max(6, need)
-      pos = new THREE.Vector3(c.x, Math.sin(elev) * dist, c.z + Math.cos(elev) * dist)
+      const back = Math.cos(elev) * dist
+      pos = sideways ? new THREE.Vector3(c.x - back, Math.sin(elev) * dist, c.z) : new THREE.Vector3(c.x, Math.sin(elev) * dist, c.z + back)
     }
-    this.controls.minPolarAngle = top ? 0 : 0
     this.moveCamera(pos, c, animate ? 0.6 : 0)
     this.controls.maxDistance = Math.max(30, dist * 2.2)
   }

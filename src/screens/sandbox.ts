@@ -53,6 +53,7 @@ export function sandboxScreen(app: App): Screen {
   let pauseM: ModalHandle | null = null
   let topView = false
   let lastScore: ReturnType<typeof sandboxScore> | null = null
+  let toolsOpen = window.innerWidth >= 700 && window.innerHeight >= 520
 
   stage.setTheme(theme)
   audio.setTheme(theme)
@@ -127,6 +128,10 @@ export function sandboxScreen(app: App): Screen {
       stage.setLevel(base, pl.placed)
       refreshAll()
     } }))
+    const toggle = Button({ label: t(toolsOpen ? 'sb.hideTools' : 'sb.showTools'), icon: TOOLS.find((x) => x.id === tool)!.icon, size: 'sm', class: 'sb-toggle', onClick: () => { toolsOpen = !toolsOpen; renderLeft() } })
+    toggle.setAttribute('aria-expanded', String(toolsOpen))
+    left.append(toggle)
+    if (!toolsOpen) return
     const sa = ScrollArea({ class: 'sb-scroll', label: t('sb.tools') }, list)
     left.append(h('div', { class: 'sb-tools' }, sa.el))
   }
@@ -371,7 +376,7 @@ export function sandboxScreen(app: App): Screen {
       Button({ label: t('sb.toRecords'), icon: 'star', onClick: () => { scoreM?.close(); app.go({ to: 'records' }) } }),
       Button({ label: t('common.home'), icon: 'home', class: 'wide', onClick: () => { scoreM?.close(); app.go({ to: 'home' }) } }),
     )
-    scoreM = openModal({ title: t('sb.score'), body: h('div', {}, body, actions), width: 'sm', closeLabel: t('common.close'), onClose: () => { scoreM = null } })
+    scoreM = openModal({ title: t('sb.score'), body: h('div', { class: 'result-body result-split' }, body, actions), width: 'sm', closeLabel: t('common.close'), onClose: () => { scoreM = null } })
     scoreM.el.classList.add('result')
   }
 
@@ -458,7 +463,7 @@ export function sandboxScreen(app: App): Screen {
 
   const leave = () => app.go({ to: 'home' })
   const offSettings = onSettings((s) => { pl.autoAim = s.autoAim; updatePreview() })
-  if (import.meta.env.DEV) (window as unknown as { __dpSandbox?: (n: number) => void }).__dpSandbox = (n) => { if (n < 0) { doPush(0); return } PAINTS.forEach((c, i) => { pl.color = c; pl.addMany(buildShape('line', [{ x: -9, z: -6 + i * 1.6 }, { x: 9, z: -6 + i * 1.6 }], shapeOpts())) }); pl.color = undefined; void n; refresh() }
+  if (import.meta.env.DEV) (window as unknown as { __dpSandbox?: (n: number) => void }).__dpSandbox = (n) => { if (n === -2) { lastScore = sandboxScore({ fallen: 180, combo: 120, colors: 6, time: 14.2, allFell: true, total: 180 }); showScore(true); return } if (n < 0) { doPush(0); return } PAINTS.forEach((c, i) => { pl.color = c; pl.addMany(buildShape('line', [{ x: -9, z: -6 + i * 1.6 }, { x: 9, z: -6 + i * 1.6 }], shapeOpts())) }); pl.color = undefined; void n; refresh() }
 
   refreshAll()
 

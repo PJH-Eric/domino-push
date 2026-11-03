@@ -364,6 +364,8 @@ export const zh = {
   'sb.deleteSlot': '刪除存檔',
   'sb.deleteConfirm': '刪除後無法復原，確定嗎？',
   'howto.kTools': '切換沙盒工具',
+  'sb.hideTools': '收起工具',
+  'sb.showTools': '工具',
 } as const
 
 export type Dict = { [K in keyof typeof zh]: string }

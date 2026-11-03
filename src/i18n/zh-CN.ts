@@ -366,4 +366,6 @@ export const zhCN: Dict = {
   'sb.deleteSlot': '删除存档',
   'sb.deleteConfirm': '删除后无法恢复，确定吗？',
   'howto.kTools': '切换沙盒工具',
+  'sb.hideTools': '收起工具',
+  'sb.showTools': '工具',
 }

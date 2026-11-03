@@ -6,7 +6,7 @@ import { getSettings } from '../game/settings'
 import { Path } from '../levels/builder'
 import { t } from '../i18n'
 import { h } from '../ui/dom'
-import { Button } from '../ui/kit'
+import { Button, ScrollArea } from '../ui/kit'
 import { LOBBY_URL, screenEl } from './common'
 
 const RAINBOW = [0xe0453a, 0xf08a2c, 0xf2c230, 0x5fb86b, 0x3f74b5, 0x8a5bd0]
@@ -40,7 +40,7 @@ export function homeScreen(app: App): Screen {
     el.replaceChildren(
       h('div', { class: 'topleft' },
         h('a', { class: 'btn btn-sm lobby-link', attrs: { href: LOBBY_URL, 'aria-label': t('home.lobby') } }, h('span', { class: 'btn-label', text: t('home.lobby') }))),
-      h('div', { class: 'home-card' },
+      ScrollArea({ class: 'home-scroll', label: t('app.title') }, h('div', { class: 'home-card' },
         h('div', { class: 'sign' }, h('h1', { text: t('app.title') }), h('p', { text: t('home.tagline') })),
         h('div', { class: 'home-btns' },
           Button({ label: t('home.challenge'), icon: 'flag', variant: 'primary', size: 'lg', onClick: () => { audio.click(); app.go({ to: 'levels' }) } }),
@@ -49,7 +49,7 @@ export function homeScreen(app: App): Screen {
           Button({ label: t('home.howto'), icon: 'book', size: 'lg', onClick: () => { audio.click(); app.go({ to: 'howto', from: { to: 'home' } }) } }),
         ),
         h('p', { class: 'home-sub', text: t('home.sub') }),
-      ),
+      )).el,
     )
   }
   render()

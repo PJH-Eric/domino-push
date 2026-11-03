@@ -366,4 +366,6 @@ export const en: Dict = {
   'sb.deleteSlot': 'Delete save',
   'sb.deleteConfirm': 'This cannot be undone. Delete it?',
   'howto.kTools': 'Switch sandbox tool',
+  'sb.hideTools': 'Hide tools',
+  'sb.showTools': 'Tools',
 }

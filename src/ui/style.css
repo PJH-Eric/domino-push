@@ -260,7 +260,7 @@ h1, h2, h3, p { margin: 0; }
 .sb-tools .sa { flex: 1; min-height: 0; }
 .sb-tools .sa-viewport { display: flex; flex-direction: column; gap: 6px; padding-right: 12px; }
 .sb-tool { justify-content: flex-start; min-height: 44px; padding: 0 10px; font-size: 14px; }
-.sb-colors { display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 6px 0; }
+.sb-colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); gap: 6px; padding: 6px 0; }
 .color-dot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--dark); box-shadow: 0 2px 0 var(--dark); }
 .color-dot.on { outline: 3px solid #fff; outline-offset: 1px; }
 .sb-sizes { display: flex; gap: 4px; }
@@ -321,7 +321,7 @@ h1, h2, h3, p { margin: 0; }
 
 /* ───── 紀錄與成就、沙盒分數 ───── */
 .records-card { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 10px 2px; background: transparent; }
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px; }
 .stat { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 2px solid rgba(74,44,23,.5); border-radius: 12px; background: rgba(255,247,232,.85); }
 .stat b { font-size: 24px; font-weight: 900; color: var(--walnut); font-variant-numeric: tabular-nums; line-height: 1.1; overflow-wrap: anywhere; }
 .stat span { font-size: 13px; font-weight: 800; }
@@ -351,3 +351,22 @@ h1, h2, h3, p { margin: 0; }
 .toolbar .seg { min-height: 40px; padding: 0 8px; }
 .toolbar .btn-label, .sb-count { white-space: nowrap; }
 .toolbar .tool-group { align-items: center; }
+
+.sb-toggle { flex: none; margin-bottom: 6px; }
+.sb-left { gap: 0; }
+.home { display: flex; flex-direction: column; }
+.home-scroll { flex: 1; min-height: 0; width: 100%; }
+.home-scroll .sa-viewport { display: flex; }
+.home-card { margin: auto; padding: 4px 0 8px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .home-card { display: grid; grid-template-columns: auto minmax(240px, 320px); align-items: center; column-gap: 24px; row-gap: 8px; width: auto; }
+  .home-card .sign { grid-row: span 2; }
+  .home-btns { gap: 8px; }
+  .home-btns .btn-lg { min-height: 48px; font-size: 17px; }
+  .home-sub { grid-column: 2; }
+  .result-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .result-split .result-actions { grid-template-columns: 1fr; }
+  .result-stars .icon { width: 42px; height: 42px; }
+  .score-big { font-size: 42px; }
+  .modal { max-height: 100%; }
+}
