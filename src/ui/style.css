@@ -448,3 +448,4 @@ h1, h2, h3, p { margin: 0; }
 .topleft .back-btn .btn-label { white-space: nowrap; }
 .topleft .kid-title { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .kid-title { font-size: 15px; padding: 6px 10px; } }
+#overlay-root > .toast-host { pointer-events: none; }
