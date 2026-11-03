@@ -1,0 +1,30 @@
+{
+  "name": "domino-push",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "推骨牌：3D 木頭積木風推骨牌（Vite + TypeScript + Three.js + Rapier），純單機",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 3111",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "seo": "node scripts/inject-seo.mjs",
+    "verify": "npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/three": "^0.170.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}
