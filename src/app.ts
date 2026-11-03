@@ -120,6 +120,7 @@ export class App {
   /* ───── 畫質：自動依幀率降級 ───── */
 
   applyQuality(): void {
+    this.stage.setAssist(getSettings().colorAssist)
     const q = getSettings().quality
     const level: Quality = q === 'auto' ? this.autoLevel : q
     if (this.stage.quality !== level) this.stage.setQuality(level)

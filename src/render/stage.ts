@@ -64,6 +64,8 @@ export class Stage {
   private ro: ResizeObserver
   private theme: ThemeId | null = null
   quality: Quality = 'high'
+  /** 色彩輔助：色帶與符號放大 */
+  assist = false
   private camAnim: { from: THREE.Vector3; to: THREE.Vector3; tFrom: THREE.Vector3; tTo: THREE.Vector3; t: number; dur: number } | null = null
   bounds = { minX: -6, maxX: 6, minZ: -4, maxZ: 4 }
 
@@ -316,7 +318,7 @@ export class Stage {
       tmpM.decompose(tmpP, tmpQ, tmpS)
       tmpM.compose(tmpP, tmpQ, tmpS.set(1, 1, 1))
       const by = dm.h * 0.14
-      const bh = dm.h * 0.24
+      const bh = dm.h * (this.assist ? 0.34 : 0.24)
       // 色帶
       tmpM2.makeTranslation(0, by, 0).multiply(new THREE.Matrix4().makeScale(dm.t * 1.06, bh, dm.w * 1.04))
       const bi = this.bandCount++
@@ -325,7 +327,7 @@ export class Stage {
       // 符號：起點箭頭在兩側面（指向倒下方向）；目標星形、固定鎖在正反面
       const kind = d.kind === 'start' ? 'arrow' : d.kind === 'target' ? 'star' : 'lock'
       const mesh = this.symMesh[kind]
-      const sz = bh * 0.95
+      const sz = Math.min(bh * 0.95, kind === 'arrow' ? dm.t * 1.15 : dm.w * 0.95)
       const place = (local: THREE.Matrix4) => {
         const k = this.symCount[kind]++
         mesh.setMatrixAt(k, local.premultiply(tmpM))
@@ -345,6 +347,12 @@ export class Stage {
       this.symMesh[k].count = this.symCount[k]
       this.symMesh[k].instanceMatrix.needsUpdate = true
     }
+  }
+
+  setAssist(on: boolean): void {
+    if (this.assist === on) return
+    this.assist = on
+    this.flushDecor()
   }
 
   setHighlight(i: number): void {
