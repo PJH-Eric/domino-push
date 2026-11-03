@@ -30,6 +30,7 @@ export type Route =
   | { to: 'random'; seed: number }
   | { to: 'sandbox' }
   | { to: 'howto'; from?: Route }
+  | { to: 'records'; tab?: number }
 
 type Factory = (app: App, r: Route) => Screen
 

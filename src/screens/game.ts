@@ -9,6 +9,7 @@ import { getSettings, onSettings } from '../game/settings'
 import { levelByNo, allLevels } from '../levels'
 import { generateRandom } from '../levels/random'
 import { loadProgress, recordWin, saveProgress } from '../storage/progress'
+import { recordRun } from '../storage/records'
 import { t, type Key } from '../i18n'
 import { h } from '../ui/dom'
 import { icon } from '../ui/icons'
@@ -292,6 +293,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     if (!win) {
       phase = 'fail'
       audio.fail()
+      recordRun({ mode: isRandom ? 'random' : 'challenge', fallen, combo: runner.bestCombo, win: false })
       trackGameEnd('lose', { stars: 0 })
       renderAll()
       return
@@ -303,6 +305,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     let newBest = false
     if (!isRandom) newBest = recordWin(loadProgress(), level.id, stars, used).newBest
     else { const p = loadProgress(); p.randomWins++; saveProgress(p) }
+    recordRun({ mode: isRandom ? 'random' : 'challenge', fallen, combo: runner.bestCombo, win: true })
     trackGameEnd('win', { stars })
     renderAll()
     showResult(stars, used, newBest)
@@ -313,7 +316,8 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     for (let i = 0; i < 3; i++) st.appendChild(icon('star'))
     const lit = () => st.querySelectorAll('svg').forEach((s, i) => { if (i < stars) { setTimeout(() => { s.classList.add('lit'); audio.star(i) }, getSettings().reduceMotion ? 0 : 250 + i * 280) } })
     const next = !isRandom ? levelByNo(level.no + 1) : undefined
-    const body = h('div', { class: 'result-body' },
+    const card = h('div', { class: 'result-body', attrs: { 'data-result-share': '' } },
+      h('p', { class: 'result-level', text: title() }),
       st,
       h('p', { class: 'result-msg', text: t(stars === 3 ? 'result.perfect' : stars === 2 ? 'result.great' : 'result.good') }),
       h('div', { class: 'result-table' },
@@ -325,6 +329,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
       newBest ? h('span', { class: 'tag tag-ok', text: t('result.newBest') }) : null,
       stars < 3 ? h('p', { class: 'field-hint', text: t('result.tip3', { n: level.star3 }) }) : null,
     )
+    const body = h('div', { class: 'result-body' }, card)
     const actions = h('div', { class: 'result-actions' })
     if (next) actions.append(Button({ label: t('result.next'), icon: 'play', variant: 'primary', class: 'wide', onClick: () => { result?.close(); app.go({ to: 'game', level: next.no }) } }))
     if (isRandom) actions.append(Button({ label: t('result.nextRandom'), icon: 'dice', variant: 'gold', class: 'wide', onClick: () => { result?.close(); app.go({ to: 'random', seed: Math.floor(Math.random() * 900000) + 100000 }) } }))
