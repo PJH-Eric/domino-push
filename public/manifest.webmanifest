@@ -1,0 +1,16 @@
+{
+  "name": "推骨牌 Domino Push",
+  "short_name": "推骨牌",
+  "description": "免費免下載的 3D 木頭積木推骨牌：30 個挑戰關、隨機關與自由沙盒。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e2c597",
+  "theme_color": "#8a5a33",
+  "lang": "zh-Hant",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

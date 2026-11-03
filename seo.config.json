@@ -1,0 +1,37 @@
+{
+  "id": "domino-push",
+  "siteUrl": "https://pjh-eric.github.io/domino-push/",
+  "title": "推骨牌｜免費 3D 木頭積木推骨牌・單機闖關",
+  "description": "免費免下載的 3D 推骨牌：在桌上擺好木頭骨牌，輕輕一推看整串連鎖倒下。30 個機關挑戰關、無限隨機關與自由沙盒，手機平板觸控就能玩。",
+  "lobbyUrl": "https://pjh-eric.github.io/game-lobby/",
+  "googleSiteVerification": "",
+  "genre": "益智",
+  "players": "1",
+  "ogImage": "https://pjh-eric.github.io/domino-push/assets/images/seo.webp",
+  "ogImageAlt": "推骨牌 3D 木頭積木推骨牌：擺好骨牌、按下推，看彈珠、槓桿與積木塔連鎖倒下",
+  "screenshots": [
+    {
+      "file": "assets/images/shot-challenge.webp",
+      "alt": "挑戰關卡：在綠色桌墊上擺骨牌，接起紅色起點與金色目標",
+      "caption": "挑戰模式畫面"
+    },
+    {
+      "file": "assets/images/shot-machine.webp",
+      "alt": "機關關卡：骨牌撞彈珠、彈珠滾下滑梯與蹺蹺板",
+      "caption": "機關關卡畫面"
+    },
+    {
+      "file": "assets/images/shot-sandbox.webp",
+      "alt": "自由沙盒：用直線、圓形、螺旋工具排出彩色骨牌",
+      "caption": "自由沙盒畫面"
+    }
+  ],
+  "features": [
+    "30 個手設挑戰關：斜坡、彈珠、旋轉槓桿、蹺蹺板、積木塔",
+    "用越少骨牌拿越多星，三星門檻挑戰最省擺法",
+    "種子隨機關，同一個號碼永遠是同一關",
+    "自由沙盒：直線、曲線、圓形、螺旋、分岔工具與慢動作重播",
+    "沙盒分數、個人紀錄與 26 個成就，結算圖片可分享",
+    "支援繁體中文、簡體中文與 English，手機、平板、電腦皆可玩"
+  ]
+}

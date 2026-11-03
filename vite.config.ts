@@ -5,6 +5,7 @@ export default defineConfig({
   base: process.env.VITE_BASE ?? './',
   server: { port: 3110, host: true, strictPort: true },
   preview: { port: 3111, host: true },
-  build: { target: 'es2022', chunkSizeWarningLimit: 2600 },
+  // Rapier 的 wasm 內嵌約 2 MB，獨立成一個快取友善的 chunk
+  build: { target: 'es2022', chunkSizeWarningLimit: 2400, rollupOptions: { output: { manualChunks: { rapier: ['@dimforge/rapier3d-compat'], three: ['three'] } } } },
   optimizeDeps: { exclude: ['@dimforge/rapier3d-compat'] },
 })
