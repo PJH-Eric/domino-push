@@ -1,58 +1,65 @@
 import RAPIER from '@dimforge/rapier3d-compat'
 import './ui/style.css'
-import { Stage } from './render/stage'
-import { buildSim, STEP, type Sim } from './physics/sim'
-import type { DominoSpec } from './core/types'
+import { initAnalytics } from './analytics'
+import { App } from './app'
+import { setMaxSteps } from './game/runner'
+import { loadSettings } from './game/settings'
+import { t } from './i18n'
+import { gameScreen } from './screens/game'
+import { homeScreen } from './screens/home'
+import { howtoScreen } from './screens/howto'
+import { levelsScreen } from './screens/levels'
+import { sandboxScreen } from './screens/sandbox'
+import { h } from './ui/dom'
 
-/* M0 薄切：一排骨牌、按「推！」看它們倒下 */
-async function boot(): Promise<void> {
-  await RAPIER.init()
-  const app = document.getElementById('app')!
-  const host = document.createElement('div')
-  host.className = 'stage-host'
-  app.appendChild(host)
-  const stage = new Stage(host)
-  stage.setTheme('village')
-  const dominoes: DominoSpec[] = []
-  for (let i = 0; i < 24; i++) {
-    const t = i / 23
-    dominoes.push({ x: -6 + i * 0.55, z: Math.sin(t * Math.PI * 2) * 1.6, a: 0, kind: i === 0 ? 'start' : i === 23 ? 'target' : 'fixed' })
-  }
-  for (let i = 1; i < dominoes.length; i++) {
-    const p = dominoes[i - 1], c = dominoes[i]
-    const n = dominoes[i + 1] ?? c
-    c.a = Math.atan2(-(n.z - p.z), n.x - p.x)
-  }
-  dominoes[0].a = Math.atan2(-(dominoes[1].z - dominoes[0].z), dominoes[1].x - dominoes[0].x)
-  const base = { dominoes, pieces: [], zones: [], bounds: { minX: -6, maxX: 6, minZ: -3, maxZ: 3 } }
-  stage.setLevel(base, [])
-  stage.fitView(false, false)
-  let sim: Sim | null = null
-  const btn = document.createElement('button')
-  btn.className = 'btn btn-primary btn-lg m0-push'
-  btn.textContent = '推！'
-  btn.onclick = () => {
-    sim?.dispose()
-    const b = buildSim(RAPIER, base, [])
-    sim = b.sim
-    stage.setLevel(base, [])
-    stage.attachSim(sim)
-    sim.push(b.startIdx)
-  }
-  app.appendChild(btn)
-  let last = performance.now()
-  let acc = 0
-  const loop = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000)
-    last = now
-    if (sim) {
-      acc += dt
-      while (acc >= STEP) { sim.step((i) => { if (i.force > 30) stage.puff(i.x, 0.05, i.z, 3) }); acc -= STEP }
-      stage.syncFrom()
-    }
-    stage.render(dt)
-    requestAnimationFrame(loop)
-  }
-  requestAnimationFrame(loop)
+function loadingEl(): HTMLElement {
+  return h('div', { class: 'loading', attrs: { role: 'status', 'aria-live': 'polite' } },
+    h('div', { class: 'loading-card' },
+      h('div', { class: 'loading-dominoes', attrs: { 'aria-hidden': 'true' } }, h('i'), h('i'), h('i'), h('i'), h('i')),
+      h('p', { text: t('app.loading') })))
 }
+
+function errorEl(msg: string): HTMLElement {
+  const retry = h('button', { class: 'btn btn-primary', text: t('common.retry'), attrs: { type: 'button' } })
+  retry.addEventListener('click', () => location.reload())
+  return h('div', { class: 'loading', attrs: { role: 'alert' } },
+    h('div', { class: 'panel error-card' }, h('h2', { class: 'panel-title', text: t('app.errorTitle') }), h('p', { text: msg, style: 'margin-bottom:14px;font-weight:700' }), retry))
+}
+
+function hasWebGL(): boolean {
+  try {
+    const c = document.createElement('canvas')
+    return !!(c.getContext('webgl2') || c.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+
+async function boot(): Promise<void> {
+  loadSettings()
+  initAnalytics()
+  const loading = loadingEl()
+  document.body.appendChild(loading)
+  if (!hasWebGL()) {
+    loading.replaceWith(errorEl(t('app.noWebgl')))
+    return
+  }
+  try {
+    await RAPIER.init()
+  } catch {
+    loading.replaceWith(errorEl(t('app.physicsFail')))
+    return
+  }
+  const app = new App(RAPIER)
+  app.register('home', (a) => homeScreen(a))
+  app.register('levels', (a, r) => levelsScreen(a, r.to === 'levels' ? r.chapter : 0))
+  app.register('game', (a, r) => gameScreen(a, { level: r.to === 'game' ? r.level : 1 }))
+  app.register('random', (a, r) => gameScreen(a, { seed: r.to === 'random' ? r.seed : 1 }))
+  app.register('sandbox', (a) => sandboxScreen(a))
+  app.register('howto', (a, r) => howtoScreen(a, r.to === 'howto' ? r.from : undefined))
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has('turbo')) setMaxSteps(60)
+  app.go({ to: 'home' })
+  loading.remove()
+}
+
 boot()

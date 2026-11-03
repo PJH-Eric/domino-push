@@ -53,6 +53,8 @@ export class Stage {
   private themeGroup = new THREE.Group()
   private ghost: THREE.Mesh
   private ghostMat: THREE.MeshStandardMaterial
+  private ghosts: THREE.InstancedMesh
+  private guide: THREE.Mesh
   private dyn: DynVisual[] = []
   private specs: DominoSpec[] = []
   private zones: Zone[] = []
@@ -123,6 +125,18 @@ export class Stage {
     this.ghost.visible = false
     this.ghost.renderOrder = 5
     this.scene.add(this.ghost)
+    this.ghosts = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false }), 400)
+    this.ghosts.count = 0
+    this.ghosts.frustumCulled = false
+    this.ghosts.renderOrder = 5
+    this.scene.add(this.ghosts)
+    // 可碰到範圍：骨牌前方的扇形
+    const ring = new THREE.RingGeometry(0.42, 0.98, 24, 1, -0.5, 1.0)
+    ring.rotateX(-Math.PI / 2)
+    this.guide = new THREE.Mesh(ring, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.32, depthWrite: false }))
+    this.guide.visible = false
+    this.guide.renderOrder = 3
+    this.scene.add(this.guide)
 
     // 木屑粒子
     const dm = new THREE.InstancedMesh(new THREE.BoxGeometry(0.06, 0.06, 0.06), new THREE.MeshBasicMaterial({ color: 0xd9b98a, transparent: true, opacity: 0.85 }), 160)
@@ -393,6 +407,33 @@ export class Stage {
     this.ghost.scale.set(dm.t, dm.h, dm.w)
     this.ghostMat.color.setHex(valid ? (d.color ?? 0x5fd07a) : 0xe0453a)
     this.ghostMat.opacity = valid ? 0.55 : 0.45
+  }
+
+  /** 多張預覽（沙盒圖形工具） */
+  showGhosts(list: DominoSpec[], valid = true): void {
+    const n = Math.min(list.length, 400)
+    this.ghosts.count = n
+    for (let i = 0; i < n; i++) {
+      const d = list[i]
+      const dm = dims(d.size)
+      tmpP.set(d.x, (d.y ?? 0) + dm.h / 2, d.z)
+      tmpQ.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, d.a)
+      tmpS.set(dm.t, dm.h, dm.w)
+      this.ghosts.setMatrixAt(i, tmpM.compose(tmpP, tmpQ, tmpS))
+      this.ghosts.setColorAt(i, tmpC.setHex(valid ? (d.color ?? 0x5fd07a) : 0xe0453a))
+    }
+    this.ghosts.instanceMatrix.needsUpdate = true
+    if (this.ghosts.instanceColor) this.ghosts.instanceColor.needsUpdate = true
+  }
+
+  /** 在骨牌前方畫出「下一張要放在這個範圍內」的扇形提示 */
+  showGuide(d: DominoSpec | null): void {
+    if (!d) { this.guide.visible = false; return }
+    const dm = dims(d.size)
+    this.guide.visible = true
+    this.guide.position.set(d.x, (d.y ?? 0) + 0.012, d.z)
+    this.guide.rotation.set(0, d.a, 0)
+    this.guide.scale.setScalar(dm.h)
   }
 
   /** 螢幕座標轉成桌面上的點：優先命中擺放區（含高度），否則落在桌面 y=0 */

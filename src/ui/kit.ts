@@ -7,7 +7,7 @@ import { getLang, LANG_BADGE, LANG_NAMES, LANGS, t, type Lang } from '../i18n'
 export interface ButtonOpts {
   label?: string
   icon?: IconName
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'gold' | 'blue'
   size?: 'sm' | 'md' | 'lg'
   onClick?: (e: MouseEvent) => void
   disabled?: boolean
@@ -487,8 +487,9 @@ export function openModal(o: { title: string; body: Node; footer?: Node; onClose
     opener?.focus?.()
   }
   requestAnimationFrame(() => {
-    const first = dialog.querySelector<HTMLElement>(FOCUSABLE)
-    first?.focus()
+    // 優先聚焦內容裡的第一顆按鈕，其次才是關閉鈕或捲動區
+    const first = sa.viewport.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled])') ?? dialog.querySelector<HTMLElement>(FOCUSABLE)
+    first?.focus({ preventScroll: true })
   })
   return { close, el: dialog }
 }
