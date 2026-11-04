@@ -91,6 +91,7 @@ export class Stage {
     this.controls.screenSpacePanning = false
     this.controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN }
     this.controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
+    this.bindPanKeys()
 
     this.hemi = new THREE.HemisphereLight(0xfff6e8, 0x8a6a4a, 1.25)
     this.scene.add(this.hemi)
@@ -473,13 +474,29 @@ export class Stage {
   }
 
   /** 由螢幕座標找最近的骨牌（擺放階段選取用），回傳規格索引或 −1 */
-  pickDomino(clientX: number, clientY: number): number {
+  pickDomino(clientX: number, clientY: number, tol = 0): number {
     const r = this.renderer.domElement.getBoundingClientRect()
     const v = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1)
     const ray = new THREE.Raycaster()
     ray.setFromCamera(v, this.camera)
     const hit = ray.intersectObject(this.dominoMesh, false)[0]
-    return hit?.instanceId ?? -1
+    if (hit?.instanceId !== undefined) return hit.instanceId
+    if (tol <= 0) return -1
+    // 骨牌很薄，手指不易點準：改找螢幕上最近的骨牌（容許半徑 tol px）
+    const px = clientX - r.left, py = clientY - r.top
+    const m = new THREE.Matrix4(), c = new THREE.Vector3(), top = new THREE.Vector3()
+    let best = -1, bestD = tol * tol
+    for (let i = 0; i < this.dominoMesh.count; i++) {
+      this.dominoMesh.getMatrixAt(i, m)
+      c.setFromMatrixPosition(m)
+      if (m.determinant() < 1e-9) continue
+      top.copy(c).project(this.camera)
+      if (top.z > 1) continue
+      const sx = (top.x * 0.5 + 0.5) * r.width, sy = (-top.y * 0.5 + 0.5) * r.height
+      const d = (sx - px) * (sx - px) + (sy - py) * (sy - py)
+      if (d < bestD) { bestD = d; best = i }
+    }
+    return best
   }
 
   /** 螢幕座標（CSS px），供 DOM 彈出文字定位 */
@@ -554,6 +571,41 @@ export class Stage {
     this.controls.maxDistance = Math.max(30, dist * 2.2)
   }
 
+  /** 單指／左鍵拖曳的行為：旋轉或平移 */
+  panMode = false
+  setPanMode(on: boolean): void {
+    this.panMode = on
+    this.controls.mouseButtons = { LEFT: on ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: on ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN }
+    this.controls.touches = { ONE: on ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
+  }
+
+  private keys = new Set<string>()
+  /** 鍵盤 WASD 平移（桌機）；輸入框內不處理 */
+  private bindPanKeys(): void {
+    const ok = (e: KeyboardEvent) => !(e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) && !e.ctrlKey && !e.metaKey && !e.altKey
+    addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if ('wasd'.includes(k) && k.length === 1 && ok(e)) this.keys.add(k) })
+    addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()))
+    addEventListener('blur', () => this.keys.clear())
+  }
+
+  private stepPanKeys(dt: number): void {
+    if (!this.keys.size || !this.controls.enabled) return
+    const fwd = new THREE.Vector3(); this.camera.getWorldDirection(fwd); fwd.y = 0
+    if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1)
+    fwd.normalize()
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0))
+    const sp = Math.max(4, this.camera.position.distanceTo(this.controls.target)) * 0.9 * dt
+    const mv = new THREE.Vector3()
+    if (this.keys.has('w')) mv.add(fwd)
+    if (this.keys.has('s')) mv.sub(fwd)
+    if (this.keys.has('d')) mv.add(right)
+    if (this.keys.has('a')) mv.sub(right)
+    if (mv.lengthSq() === 0) return
+    mv.normalize().multiplyScalar(sp)
+    this.camera.position.add(mv)
+    this.controls.target.add(mv)
+  }
+
   moveCamera(pos: THREE.Vector3, target: THREE.Vector3, dur = 0.6): void {
     if (dur <= 0) {
       this.camera.position.copy(pos)
@@ -595,6 +647,7 @@ export class Stage {
       this.controls.target.lerpVectors(a.tFrom, a.tTo, e)
       if (k >= 1) this.camAnim = null
     }
+    this.stepPanKeys(dt)
     this.controls.update()
     // 陰影範圍跟著鏡頭目標
     const tg = this.controls.target

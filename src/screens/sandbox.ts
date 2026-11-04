@@ -171,6 +171,12 @@ export function sandboxScreen(app: App): Screen {
     }
   }
 
+  const panBtn = () => {
+    const b = IconButton('move', t('game.panMode'), () => { stage.setPanMode(!stage.panMode); renderCam() })
+    if (stage.panMode) b.classList.add('on')
+    return b
+  }
+
   const renderCam = () => {
     const top = IconButton('top', t(topView ? 'game.view3d' : 'game.viewTop'), () => { topView = !topView; stage.fitView(topView); renderCam() })
     if (topView) top.classList.add('on')
@@ -178,6 +184,7 @@ export function sandboxScreen(app: App): Screen {
       IconButton('zoomIn', t('game.zoomIn'), () => stage.zoom(0.8)),
       IconButton('zoomOut', t('game.zoomOut'), () => stage.zoom(1.25)),
       top,
+      panBtn(),
       IconButton('orbit', t('game.resetView'), () => { topView = false; stage.fitView(false); renderCam() }),
       IconButton('pause', t('game.pause'), () => openPause()),
     )
@@ -266,12 +273,12 @@ export function sandboxScreen(app: App): Screen {
     },
     tap: (x, y, kind) => {
       if (phase === 'pick') {
-        const di = stage.pickDomino(x, y)
+        const di = stage.pickDomino(x, y, kind === 'touch' ? 40 : 28)
         if (di >= 0) doPush(di)
         return
       }
       if (phase !== 'build') return
-      const di = stage.pickDomino(x, y)
+      const di = stage.pickDomino(x, y, tool === 'eraser' || tool === 'single' ? (kind === 'touch' ? 22 : 10) : 0)
       if (tool === 'eraser') {
         if (di >= 0) { pl.removeAt(di); audio.remove(); refresh() }
         return
@@ -513,6 +520,7 @@ export function sandboxScreen(app: App): Screen {
       }
     },
     dispose() {
+      stage.setPanMode(false)
       taps.dispose()
       offSettings()
       runner?.dispose()

@@ -72,6 +72,7 @@ async function boot(): Promise<void> {
   app.register('howto', (a, r) => howtoScreen(a, r.to === 'howto' ? r.from : undefined))
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('turbo')) setMaxSteps(60)
   if (import.meta.env.DEV) (window as unknown as { __dpGo?: (r: unknown) => void }).__dpGo = (r) => app.go(r as Parameters<App['go']>[0])
+  if (import.meta.env.DEV) (window as unknown as { __dpStage?: unknown }).__dpStage = app.stage
   app.go({ to: 'home' })
   loading.remove()
 }
