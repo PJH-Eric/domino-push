@@ -111,6 +111,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
   let runner: Runner | null = null
   let fallen = 0
   let winTimer = -1
+  let winArmed = false
   let slow = 0
   let pulse = 0
   let result: ModalHandle | null = null
@@ -184,6 +185,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
     phase = 'run'
     fallen = 0
     winTimer = -1
+    winArmed = false
     stage.showGhosts([])
     finger.hide()
     runner = new Runner(app.R, level, placed(), {
@@ -282,8 +284,8 @@ export function kidsGameScreen(app: App, no: number): Screen {
       const sim = runner.sim
       if (getSettings().cameraFollow && sim.fallenCount > 0) stage.follow(sim.lastFall.x, sim.lastFall.z, Math.min(1, dt * 0.8))
       if (phase === 'run') {
-        if (sim.targetsFallen === sim.targetsTotal && winTimer < 0) { winTimer = 1.4; if (!getSettings().reduceMotion) slow = 0.9 }
-        if (winTimer >= 0) { winTimer -= dt; if (winTimer <= 0) win() }
+        if (sim.targetsFallen === sim.targetsTotal && !winArmed) { winTimer = 1.4; winArmed = true; if (!getSettings().reduceMotion) slow = 0.9 }
+        if (winArmed) { winTimer -= dt; if (winTimer <= 0 && (runner.settled || winTimer < -6)) win() }
         else if (runner.settled) { phase = 'fail'; audio.fail(); refresh() }
       }
     },

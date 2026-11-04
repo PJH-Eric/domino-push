@@ -32,6 +32,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
   let runner: Runner | null = null
   let fallen = 0
   let winTimer = -1
+  let winArmed = false
   let slowTimer = 0
   let result: ModalHandle | null = null
   let pauseM: ModalHandle | null = null
@@ -251,6 +252,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     phase = 'run'
     fallen = 0
     winTimer = -1
+    winArmed = false
     slowTimer = 0
     pl.selected = -1
     stage.setDominoes(pl.all())
@@ -410,13 +412,14 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
         }
         if (phase === 'run') {
           const allDown = sim.targetsTotal > 0 && sim.targetsFallen === sim.targetsTotal
-          if (allDown && winTimer < 0) {
+          if (allDown && !winArmed) {
             winTimer = 1.6
+            winArmed = true
             if (!getSettings().reduceMotion) slowTimer = 1.0
           }
-          if (winTimer >= 0) {
+          if (winArmed) {
             winTimer -= dt
-            if (winTimer <= 0) finish(true)
+            if (winTimer <= 0 && (runner.settled || winTimer < -6)) finish(true)
           } else if (runner.settled) finish(false)
         }
       }

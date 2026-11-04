@@ -287,7 +287,7 @@ export class Sim {
 
   /** 推動後全部靜止（或超時）＝可以結算 */
   get settled(): boolean {
-    return this.pushed && (this.quiet >= 0.8 || this.time >= TIMEOUT)
+    return this.pushed && (this.quiet >= 1.2 || this.time >= TIMEOUT)
   }
 
   get targetsTotal(): number {
