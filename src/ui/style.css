@@ -451,3 +451,78 @@ h1, h2, h3, p { margin: 0; }
 .topleft .kid-title { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .kid-title { font-size: 15px; padding: 6px 10px; } }
 #overlay-root > .toast-host { pointer-events: none; }
+
+/* 幼幼手機：把桌面與操作區分開，避免手指與工具遮住骨牌。 */
+@media (max-width: 640px), (max-height: 500px) and (orientation: landscape) {
+  #app:has(.kids-game, .kids-draw, .kids-show) {
+    --kid-top: calc(108px + var(--safe-t));
+    --kid-dock: calc(110px + var(--safe-b));
+  }
+  #app:has(.kids-draw) { --kid-dock: calc(238px + var(--safe-b)); }
+  #app:has(.kids-game, .kids-draw, .kids-show) .stage-host {
+    top: var(--kid-top);
+    bottom: var(--kid-dock);
+  }
+  :is(.kids-game, .kids-draw, .kids-show) .topleft { max-width: calc(100% - 140px); }
+  :is(.kids-game, .kids-draw, .kids-show) .kid-title {
+    position: fixed;
+    top: calc(66px + var(--safe-t));
+    left: calc(10px + var(--safe-l));
+    right: calc(10px + var(--safe-r));
+    max-width: none;
+    text-align: center;
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+  .kid-bar {
+    bottom: var(--safe-b);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    gap: 8px;
+    padding: 10px 12px 14px;
+    align-items: center;
+    flex-wrap: nowrap;
+    background: var(--grain), #e8c48a;
+    border-top: 3px solid var(--dark);
+  }
+  .kid-tip { flex: 1; min-width: 0; font-size: 16px; padding: 10px; gap: 6px; }
+  .kid-tip .icon { width: 24px; height: 24px; }
+  .kid-push { flex: none; width: 80px; height: 80px; min-height: 80px; font-size: 20px; }
+  .kid-push .icon { width: 32px; height: 32px; }
+  .kid-draw-bar { flex-direction: column; gap: 8px; }
+  .kid-colors { display: grid; grid-template-columns: repeat(4, 44px); width: 100%; padding: 6px; gap: 6px; justify-content: center; }
+  .kid-dot { width: 44px; height: 44px; flex: none; border-width: 2px; }
+  .kid-dot.on { outline-width: 2px; outline-offset: 1px; transform: none; }
+  .kid-actions { width: 100%; justify-content: space-evenly; gap: 12px; }
+  .kid-round { width: 56px; min-width: 56px; height: 56px; }
+}
+@media (max-width: 374px) and (orientation: portrait) {
+  .kid-colors { gap: 2px; padding: 6px 2px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #app:has(.kids-game, .kids-draw, .kids-show) { --kid-top: calc(66px + var(--safe-t)); }
+  #app:has(.kids-game, .kids-draw, .kids-show) .stage-host {
+    bottom: var(--safe-b);
+    right: calc(212px + var(--safe-r));
+  }
+  :is(.kids-game, .kids-draw, .kids-show) .kid-title {
+    position: static;
+    font-size: 14px;
+    max-width: min(320px, 40vw);
+  }
+  .kid-bar {
+    left: auto;
+    right: var(--safe-r);
+    top: calc(68px + var(--safe-t));
+    width: 208px;
+    transform: none;
+    flex-direction: column;
+    justify-content: center;
+    border-top: 0;
+    border-left: 3px solid var(--dark);
+    padding: 8px;
+  }
+  .kid-tip { flex: none; font-size: 14px; }
+  .kid-colors { flex-wrap: wrap; gap: 6px; padding: 6px; }
+  .kid-draw-bar .kid-actions { flex-wrap: wrap; gap: 8px; }
+  .kid-draw-bar .kid-push { width: 100%; height: 64px; min-height: 64px; border-radius: 18px; flex-direction: row; }
+}

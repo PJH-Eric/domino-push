@@ -17,6 +17,16 @@ import { PointerTaps } from './pointer'
 
 /* ───── 共用小元件 ───── */
 
+/** 手機工具區改變可用畫布大小時，重新取景；離開模式即停止監聽。 */
+function fitKidsViewport(app: App): () => void {
+  const observer = new ResizeObserver(() => {
+    app.stage.resize()
+    app.stage.fitView(false, false)
+  })
+  observer.observe(app.stage.renderer.domElement)
+  return () => observer.disconnect()
+}
+
 /** 會點來點去的大手指：指著下一個要點的地方 */
 class Finger {
   el = h('div', { class: 'finger', attrs: { 'aria-hidden': 'true' } }, icon('hand', 'icon'))
@@ -100,6 +110,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
   const level: Level = kidLevel(no) ?? kidLevel(1)!
   const stage = app.stage
   const el = screenEl('kids-game')
+  const stopViewport = fitKidsViewport(app)
   stage.setTheme(level.theme)
   audio.setTheme(level.theme)
   stage.setLevel(level, [])
@@ -290,6 +301,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
       }
     },
     dispose() {
+      stopViewport()
       taps.dispose()
       runner?.dispose()
       stage.detachSim()
@@ -306,6 +318,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
 export function kidsDrawScreen(app: App): Screen {
   const stage = app.stage
   const el = screenEl('kids-draw')
+  const stopViewport = fitKidsViewport(app)
   const base = { dominoes: [] as DominoSpec[], pieces: [] as Piece[], zones: [], bounds: { minX: -7, maxX: 7, minZ: -4.5, maxZ: 4.5 } }
   stage.setTheme('candy')
   audio.setTheme('candy')
@@ -450,6 +463,7 @@ export function kidsDrawScreen(app: App): Screen {
       }
     },
     dispose() {
+      stopViewport()
       canvas.removeEventListener('pointerdown', down)
       canvas.removeEventListener('pointermove', move)
       canvas.removeEventListener('pointerup', up)
@@ -480,6 +494,7 @@ export function rainbowScene(n: number): { dominoes: DominoSpec[]; pieces: Piece
 export function kidsShowScreen(app: App): Screen {
   const stage = app.stage
   const el = screenEl('kids-show')
+  const stopViewport = fitKidsViewport(app)
   const scene = rainbowScene(200)
   stage.setTheme('candy')
   audio.setTheme('candy')
@@ -551,6 +566,7 @@ export function kidsShowScreen(app: App): Screen {
       }
     },
     dispose() {
+      stopViewport()
       runner?.dispose()
       stage.detachSim()
       stage.controls.enabled = true

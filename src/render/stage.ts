@@ -503,7 +503,7 @@ export class Stage {
   project(x: number, y: number, z: number): { x: number; y: number; visible: boolean } {
     const v = new THREE.Vector3(x, y, z).project(this.camera)
     const r = this.renderer.domElement.getBoundingClientRect()
-    return { x: (v.x * 0.5 + 0.5) * r.width, y: (-v.y * 0.5 + 0.5) * r.height, visible: v.z < 1 && Math.abs(v.x) <= 1.1 && Math.abs(v.y) <= 1.1 }
+    return { x: r.left + (v.x * 0.5 + 0.5) * r.width, y: r.top + (-v.y * 0.5 + 0.5) * r.height, visible: v.z < 1 && Math.abs(v.x) <= 1.1 && Math.abs(v.y) <= 1.1 }
   }
 
   /* ───── 粒子 ───── */
