@@ -146,17 +146,24 @@ export function kidsGameScreen(app: App, no: number): Screen {
     bar.replaceChildren()
     banner.replaceChildren()
     if (phase === 'place') {
-      bar.append(h('div', { class: 'panel kid-tip', attrs: { role: 'status', 'aria-live': 'polite' } }, icon(left ? 'hand' : 'push'), h('span', { text: left ? t('kid.tapGlow', { n: left }) : t('kid.pressPush') })))
+      const hint = left ? t('kid.tapGlow', { n: left }) : t('kid.pressPush')
+      const progress = h('div', {
+        class: 'kid-progress',
+        attrs: { role: 'progressbar', 'aria-label': t('kid.levels'), 'aria-valuemin': '0', 'aria-valuemax': String(level.solution.length), 'aria-valuenow': String(filled.size) },
+      })
+      level.solution.forEach((_, i) => progress.append(h('span', { class: i < filled.size ? 'filled' : '', attrs: { 'aria-hidden': 'true' } })))
+      bar.append(h('div', { class: 'panel kid-tip kid-level-tip', attrs: { role: 'status', 'aria-live': 'polite' } },
+        h('div', { class: 'kid-level-hint' }, icon(left ? 'hand' : 'push'), h('span', { text: hint })), progress))
       pushEl = pushBtn(() => doPush())
       if (left) pushEl.classList.add('kid-push-wait')
       bar.append(pushEl)
     } else if (phase === 'fail') {
-      banner.append(h('div', { class: 'panel status-banner kid-banner', attrs: { role: 'alert' } }, h('p', { text: t('kid.almost') }),
+      bar.append(h('div', { class: 'panel kid-retry', attrs: { role: 'alert' } }, h('p', { text: t('kid.almost') }),
         Button({ label: t('game.tryAgain'), icon: 'refresh', variant: 'primary', class: 'kid-btn-sm', onClick: () => backToPlace() })))
       pushEl = null
     } else pushEl = null
     counter.replaceChildren()
-    if (phase !== 'place') counter.append(h('div', { class: 'panel fall-counter kid-counter' }, h('span', { class: 'fc-n', text: String(fallen) })))
+    if (phase !== 'place' && phase !== 'fail') bar.append(h('div', { class: 'panel kid-counter', attrs: { role: 'status', 'aria-label': t('kid.fallenN', { n: fallen }) } }, icon('push'), h('span', { class: 'fc-n', text: String(fallen) })))
   }
 
   const place = (i: number) => {
@@ -181,7 +188,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
       for (const i of rem) {
         const d = level.solution[i]
         const p = stage.project(d.x, (d.y ?? 0) + dims(d.size).h * 0.5, d.z)
-        const dist = Math.hypot(p.x - x + stage.renderer.domElement.getBoundingClientRect().left, p.y - y + stage.renderer.domElement.getBoundingClientRect().top)
+        const dist = Math.hypot(p.x - x, p.y - y)
         if (dist < bd) { bd = dist; best = i }
       }
       place(bd < 90 ? best : rem[0])
@@ -204,7 +211,10 @@ export function kidsGameScreen(app: App, no: number): Screen {
       onFall: (_i, x, y, z, target) => {
         fallen++
         const fc = counter.querySelector('.fc-n')
-        if (fc) fc.textContent = String(fallen)
+        if (fc) {
+          fc.textContent = String(fallen)
+          fc.parentElement?.setAttribute('aria-label', t('kid.fallenN', { n: fallen }))
+        }
         if (target) { audio.star(1); popup(x, y + 0.8, z, '★') }
       },
     })
