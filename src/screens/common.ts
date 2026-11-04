@@ -10,6 +10,28 @@ export function screenEl(name: string): HTMLElement {
   return h('div', { class: `screen ${name}` })
 }
 
+/** 手機收合鏡頭工具；畫布尺寸改變時重新取景並保留視角選擇。 */
+export function mobilePlayLayout(app: App, el: HTMLElement, fit: () => void): () => void {
+  const button = Button({
+    icon: 'orbit', ariaLabel: t('game.cameraTools'), class: 'mobile-camera-toggle',
+    onClick: () => {
+      const open = el.classList.toggle('cam-open')
+      button.setAttribute('aria-expanded', String(open))
+    },
+  })
+  button.setAttribute('aria-expanded', 'false')
+  el.append(button)
+  // renderAll 會重建畫面；保留同一個入口與展開狀態。
+  const children = new MutationObserver(() => {
+    button.setAttribute('aria-label', t('game.cameraTools'))
+    if (!el.contains(button)) el.append(button)
+  })
+  children.observe(el, { childList: true })
+  const viewport = new ResizeObserver(() => { app.stage.resize(); fit() })
+  viewport.observe(app.stage.renderer.domElement)
+  return () => { children.disconnect(); viewport.disconnect() }
+}
+
 /** 左上角返回鈕 */
 export function backButton(label: string, onClick: () => void): HTMLButtonElement {
   return Button({ icon: 'back', label, size: 'sm', class: 'back-btn', onClick: () => { audio.click(); onClick() } })

@@ -369,6 +369,7 @@ export const en: Dict = {
   'howto.kTools': 'Switch sandbox tool',
   'sb.hideTools': 'Hide tools',
   'sb.showTools': 'Tools',
+  'game.cameraTools': 'Camera tools',
   'home.kids': 'Little Kids',
   'kid.title': 'Little Kids',
   'kid.tagline': 'Tap, tap, push!',

@@ -369,6 +369,7 @@ export const zhCN: Dict = {
   'howto.kTools': '切换沙盒工具',
   'sb.hideTools': '收起工具',
   'sb.showTools': '工具',
+  'game.cameraTools': '镜头工具',
   'home.kids': '幼儿园',
   'kid.title': '幼儿园',
   'kid.tagline': '点一点、推一推！',

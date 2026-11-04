@@ -15,7 +15,7 @@ import { h } from '../ui/dom'
 import { icon } from '../ui/icons'
 import { Button, IconButton, openModal, toast, type ModalHandle } from '../ui/kit'
 import { CHAPTERS } from './levels'
-import { backButton, screenEl } from './common'
+import { backButton, mobilePlayLayout, screenEl } from './common'
 import { PointerTaps } from './pointer'
 
 type Phase = 'place' | 'run' | 'fail' | 'win'
@@ -26,6 +26,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
   const level: Level = isRandom ? generateRandom(mode.seed) : levelByNo(mode.level)!
   const stage = app.stage
   const el = screenEl('game')
+  const stopMobileLayout = mobilePlayLayout(app, el, () => stage.fitView(topView, false))
   const pl = new Placement({ base: level.dominoes, zones: level.zones, pieces: level.pieces, kind: 'player', limit: level.limit })
   pl.autoAim = getSettings().autoAim
   let phase: Phase = 'place'
@@ -432,6 +433,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
       }
     },
     dispose() {
+      stopMobileLayout()
       stage.setPanMode(false)
       taps.dispose()
       offSettings()

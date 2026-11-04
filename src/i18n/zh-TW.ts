@@ -367,6 +367,7 @@ export const zh = {
   'howto.kTools': '切換沙盒工具',
   'sb.hideTools': '收起工具',
   'sb.showTools': '工具',
+  'game.cameraTools': '鏡頭工具',
   'home.kids': '幼兒園',
   'kid.title': '幼兒園',
   'kid.tagline': '點一點、推一推！',

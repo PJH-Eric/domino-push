@@ -12,7 +12,7 @@ import { t, type Key } from '../i18n'
 import { h } from '../ui/dom'
 import { icon, type IconName } from '../ui/icons'
 import { Button, IconButton, openModal, ScrollArea, Segmented, TextField, toast, type ModalHandle } from '../ui/kit'
-import { backButton, confirmBox, screenEl } from './common'
+import { backButton, confirmBox, mobilePlayLayout, screenEl } from './common'
 import { CHAPTERS } from './levels'
 import { PointerTaps } from './pointer'
 
@@ -35,6 +35,7 @@ const SPEEDS = [1, 0.5, 0.25, 0.1]
 export function sandboxScreen(app: App): Screen {
   const stage = app.stage
   const el = screenEl('sandbox')
+  const stopMobileLayout = mobilePlayLayout(app, el, () => stage.fitView(topView, false))
   const base = { dominoes: [] as DominoSpec[], pieces: [], zones: [], bounds: { minX: -8, maxX: 8, minZ: -5, maxZ: 5 } }
   const pl = new Placement({ base: [], zones: null, pieces: [], kind: 'free', limit: 600, area: AREA })
   pl.autoAim = getSettings().autoAim
@@ -520,6 +521,7 @@ export function sandboxScreen(app: App): Screen {
       }
     },
     dispose() {
+      stopMobileLayout()
       stage.setPanMode(false)
       taps.dispose()
       offSettings()
