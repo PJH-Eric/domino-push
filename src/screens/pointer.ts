@@ -7,7 +7,35 @@ export class PointerTaps {
   private multi = false
   private off: () => void
 
-  constructor(el: HTMLElement, cb: { tap: (x: number, y: number, kind: 'mouse' | 'touch') => void; hover?: (x: number, y: number) => void; leave?: () => void }) {
+  constructor(el: HTMLElement, cb: { tap: (x: number, y: number, kind: 'mouse' | 'touch') => void; hover?: (x: number, y: number) => void; leave?: () => void; dragStart?: (x: number, y: number, kind: 'mouse' | 'touch') => boolean; dragMove?: (x: number, y: number) => void; dragEnd?: (moved: boolean) => void }) {
+    // 拖曳骨牌：按在可拖的骨牌上時攔下事件，鏡頭就不會跟著轉
+    let drag: { id: number; x: number; y: number; moved: boolean } | null = null
+    const dragDown = (e: PointerEvent) => {
+      if (drag || this.downs.size > 0 || (e.pointerType === 'mouse' && e.button !== 0)) return
+      if (!cb.dragStart?.(e.clientX, e.clientY, e.pointerType === 'mouse' ? 'mouse' : 'touch')) return
+      e.stopImmediatePropagation()
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }
+      try { el.setPointerCapture(e.pointerId) } catch { /* 合成事件沒有可捕捉的指標 */ }
+    }
+    const dragMove = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return
+      e.stopImmediatePropagation()
+      if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return
+      drag.moved = true
+      cb.dragMove?.(e.clientX, e.clientY)
+    }
+    const dragUp = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return
+      e.stopImmediatePropagation()
+      const moved = drag.moved
+      drag = null
+      cb.dragEnd?.(moved)
+      if (!moved && e.type === 'pointerup') cb.tap(e.clientX, e.clientY, e.pointerType === 'mouse' ? 'mouse' : 'touch')
+    }
+    el.addEventListener('pointerdown', dragDown, true)
+    el.addEventListener('pointermove', dragMove, true)
+    el.addEventListener('pointerup', dragUp, true)
+    el.addEventListener('pointercancel', dragUp, true)
     const down = (e: PointerEvent) => {
       this.downs.set(e.pointerId, { x: e.clientX, y: e.clientY, t: performance.now(), type: e.pointerType })
       if (this.downs.size > 1) this.multi = true
@@ -36,6 +64,10 @@ export class PointerTaps {
     el.addEventListener('pointerleave', leave)
     el.addEventListener('contextmenu', (e) => e.preventDefault())
     this.off = () => {
+      el.removeEventListener('pointerdown', dragDown, true)
+      el.removeEventListener('pointermove', dragMove, true)
+      el.removeEventListener('pointerup', dragUp, true)
+      el.removeEventListener('pointercancel', dragUp, true)
       el.removeEventListener('pointerdown', down)
       el.removeEventListener('pointermove', move)
       el.removeEventListener('pointerup', up)

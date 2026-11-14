@@ -628,3 +628,39 @@ h1, h2, h3, p { margin: 0; }
 @media (max-height: 500px) and (orientation: landscape) {
   :is(.kids-draw, .kids-show) .fall-counter.kid-counter { left: calc((100% - 212px) / 2); }
 }
+
+/* ───── 沙盒手機工具列：工具直接排開，不用開面板 ───── */
+.sb-strip { display: none; }
+.sb-style-btn { position: relative; }
+.sb-style-btn .swatch { position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--dark); }
+.sb-style .sb-colors { grid-template-columns: repeat(4, 44px); gap: 10px; justify-content: center; }
+.sb-style .color-dot { width: 44px; height: 44px; }
+.sb-style .seg { min-height: 44px; font-size: 14px; }
+.sb-style .sb-section-title { color: var(--ink); }
+@media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+  .sandbox .sb-left { display: none; }
+  .sandbox .sb-strip { position: absolute; z-index: 12; display: flex; gap: 3px; padding: 4px; border-radius: 14px; background: rgba(74,44,23,.55); left: calc(6px + var(--safe-l)); right: calc(6px + var(--safe-r)); bottom: calc(76px + var(--safe-b)); }
+  .sandbox .sb-strip[hidden] { display: none; }
+  .sandbox .sb-strip .tool-btn { flex: 1; min-width: 0; min-height: 48px; padding: 5px 0 4px; box-shadow: 0 3px 0 var(--dark); }
+  .sandbox .sb-strip .tool-btn .btn-label { font-size: 9.5px; }
+  #app:has(.screen.sandbox) .stage-host { bottom: calc(138px + var(--safe-b)); }
+  /* 下方工具列撐滿寬度，按鈕變大好按 */
+  :is(.game, .sandbox) .toolbar { width: calc(100% - 12px); }
+  :is(.game, .sandbox) .toolbar .tool-group { flex: 1; }
+  :is(.game, .sandbox) .toolbar .tool-group .tool-btn { flex: 1; min-width: 0; min-height: 54px; }
+  :is(.game, .sandbox) .toolbar .tool-btn .icon { width: 24px; height: 24px; }
+  :is(.game, .sandbox) .toolbar .tool-btn .btn-label { font-size: 11px; }
+  :is(.game, .sandbox) .push-btn { min-width: 88px; min-height: 62px; font-size: 19px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  #app:has(.screen.sandbox) .stage-host { bottom: calc(76px + var(--safe-b)); }
+  .sandbox .sb-strip { right: auto; left: calc(10px + var(--safe-l)); bottom: calc(8px + var(--safe-b)); width: 162px; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .sandbox .hud-info .field-hint, .sandbox .hud-info .hud-title { display: none; }
+  :is(.game, .sandbox) .toolbar { width: auto; left: calc(50% + 57px); max-width: calc(100% - 262px); }
+  :is(.game, .sandbox) .toolbar .tool-group .tool-btn { min-width: 46px; min-height: 50px; }
+  :is(.game, .sandbox) .push-btn { min-width: 80px; min-height: 54px; }
+}
+@media (max-width: 640px) and (orientation: portrait) {
+  #app:has(.screen.game, .screen.sandbox) .stage-host { top: calc(176px + var(--safe-t)); }
+  :is(.game, .sandbox) .fall-counter, :is(.game, .sandbox) .status-banner { top: calc(182px + var(--safe-t)); }
+}

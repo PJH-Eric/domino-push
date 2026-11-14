@@ -65,6 +65,7 @@ export function sandboxScreen(app: App): Screen {
   const info = h('div', { class: 'panel hud-info', attrs: { role: 'status', 'aria-live': 'polite' } })
   const left = h('div', { class: 'sb-left' })
   const toolbar = h('div', { class: 'toolbar' })
+  const strip = h('div', { class: 'sb-strip', attrs: { role: 'toolbar', 'aria-label': t('sb.tools') } })
   const camTools = h('div', { class: 'cam-tools' })
   const banner = h('div', { class: 'pass' })
   const counter = h('div', { class: 'pass' })
@@ -96,6 +97,59 @@ export function sandboxScreen(app: App): Screen {
     ].filter((x): x is HTMLDivElement => !!x))
   }
 
+  /** 顏色、大小、間距、桌布：左側面板與手機的「樣式」視窗共用 */
+  const styleNodes = (after: () => void): Node[] => {
+    const out: Node[] = []
+    out.push(h('div', { class: 'sb-section-title', text: t('sb.color') }))
+    const colors = h('div', { class: 'sb-colors', attrs: { role: 'radiogroup', 'aria-label': t('sb.color') } })
+    PAINTS.forEach((c, i) => {
+      const on = pl.color === c
+      const dot = h('button', { class: `color-dot${on ? ' on' : ''}`, style: `background:${c === undefined ? '#f0d3a0' : '#' + c.toString(16).padStart(6, '0')}`, attrs: { type: 'button', role: 'radio', 'aria-checked': String(on), 'aria-label': t((`sb.c${i}`) as Key) } })
+      dot.addEventListener('click', () => { pl.color = c; audio.click(); refreshAll(); after() })
+      colors.append(dot)
+    })
+    out.push(colors)
+    out.push(h('div', { class: 'sb-section-title', text: t('sb.size') }))
+    const sizes = Segmented({ value: pl.size, options: [{ value: 's', label: t('sb.s') }, { value: 'm', label: t('sb.m') }, { value: 'l', label: t('sb.l') }], onChange: (v) => { pl.size = v; refreshAll(); after() } })
+    sizes.classList.add('sb-sizes-f')
+    out.push(sizes)
+    out.push(h('div', { class: 'sb-section-title', text: t('sb.spacing') }))
+    out.push(Segmented({ value: spacing, options: [{ value: 0, label: t('sb.sp0') }, { value: 1, label: t('sb.sp1') }, { value: 2, label: t('sb.sp2') }], onChange: (v) => { spacing = v; refreshAll(); after() } }))
+    out.push(h('div', { class: 'sb-section-title', text: t('sb.theme') }))
+    out.push(Button({ label: t((`chapter.${theme}`) as Key), icon: 'palette', size: 'sm', class: 'sb-tool', onClick: () => {
+      theme = CHAPTERS[(CHAPTERS.indexOf(theme) + 1) % CHAPTERS.length]
+      stage.setTheme(theme)
+      audio.setTheme(theme)
+      stage.setLevel(base, pl.placed)
+      refreshAll()
+      after()
+    } }))
+    return out
+  }
+
+  const openStyle = () => {
+    const box = h('div', { class: 'sb-list sb-style' })
+    const fill = () => box.replaceChildren(...styleNodes(fill))
+    fill()
+    const m = openModal({ title: t('tool.style'), body: box, width: 'sm', closeLabel: t('common.close'), footer: Button({ label: t('common.done'), icon: 'check', variant: 'primary', onClick: () => m.close() }) })
+  }
+
+  /** 手機：工具直接排成一列，點一下就切換，不用開面板 */
+  const renderStrip = () => {
+    strip.replaceChildren()
+    strip.hidden = phase !== 'build'
+    if (phase !== 'build') return
+    for (const tl of TOOLS) {
+      const b = ToolButton(tl.icon, t((`sb.tool.${tl.id}`) as Key), t((`sb.tool.${tl.id}`) as Key), () => { tool = tl.id; pts = []; pl.selected = -1; audio.click(); refreshAll() })
+      if (tool === tl.id) b.classList.add('on')
+      b.setAttribute('aria-pressed', String(tool === tl.id))
+      strip.append(b)
+    }
+    const st = ToolButton('palette', t('tool.style'), t('tool.style'), () => openStyle(), 'sb-style-btn')
+    st.append(h('i', { class: 'swatch', style: `background:${pl.color === undefined ? '#f0d3a0' : '#' + pl.color.toString(16).padStart(6, '0')}` }))
+    strip.append(st)
+  }
+
   const renderLeft = () => {
     left.replaceChildren()
     info.classList.toggle('compact', toolsOpen && phase === 'build')
@@ -107,32 +161,7 @@ export function sandboxScreen(app: App): Screen {
       b.setAttribute('aria-pressed', String(tool === tl.id))
       list.append(b)
     }
-    list.append(h('div', { class: 'sb-section-title', text: t('sb.color') }))
-    const colors = h('div', { class: 'sb-colors', attrs: { role: 'radiogroup', 'aria-label': t('sb.color') } })
-    PAINTS.forEach((c, i) => {
-      const on = pl.color === c
-      const dot = h('button', { class: `color-dot${on ? ' on' : ''}`, style: `background:${c === undefined ? '#f0d3a0' : '#' + c.toString(16).padStart(6, '0')}`, attrs: { type: 'button', role: 'radio', 'aria-checked': String(on), 'aria-label': t((`sb.c${i}`) as Key) } })
-      dot.addEventListener('click', () => { pl.color = c; audio.click(); refreshAll() })
-      colors.append(dot)
-    })
-    list.append(colors)
-    list.append(h('div', { class: 'sb-section-title', text: t('sb.size') }))
-    const sizes = Segmented({ value: pl.size, options: [{ value: 's', label: t('sb.s') }, { value: 'm', label: t('sb.m') }, { value: 'l', label: t('sb.l') }], onChange: (v) => { pl.size = v; refreshAll() } })
-    sizes.classList.add('sb-sizes-f')
-    list.append(sizes)
-    list.append(h('div', { class: 'sb-section-title', text: t('sb.spacing') }))
-    list.append(Segmented({ value: spacing, options: [{ value: 0, label: t('sb.sp0') }, { value: 1, label: t('sb.sp1') }, { value: 2, label: t('sb.sp2') }], onChange: (v) => { spacing = v; refreshAll() } }))
-    list.append(h('div', { class: 'sb-section-title', text: t('sb.theme') }))
-    list.append(Button({ label: t((`chapter.${theme}`) as Key), icon: 'palette', size: 'sm', class: 'sb-tool', onClick: () => {
-      theme = CHAPTERS[(CHAPTERS.indexOf(theme) + 1) % CHAPTERS.length]
-      stage.setTheme(theme)
-      audio.setTheme(theme)
-      stage.setLevel(base, pl.placed)
-      refreshAll()
-    } }))
-    const clear = Button({ label: t('sb.clear'), icon: 'eraser', size: 'sm', class: 'sb-tool', onClick: () => { if (pl.used) confirmBox({ title: t('sb.clear'), text: t('sb.clearConfirm'), ok: t('sb.clear'), danger: true, onOk: () => { pl.clear(); refresh() } }) } })
-    clear.disabled = !pl.used
-    list.append(h('div', { class: 'sb-section-title', text: t('sb.more') }), clear)
+    list.append(...styleNodes(() => {}))
     const toggle = Button({ label: t(toolsOpen ? 'sb.hideTools' : 'sb.showTools'), icon: TOOLS.find((x) => x.id === tool)!.icon, size: 'sm', class: 'sb-toggle', onClick: () => { toolsOpen = !toolsOpen; renderLeft() } })
     toggle.setAttribute('aria-expanded', String(toolsOpen))
     left.append(toggle)
@@ -149,15 +178,12 @@ export function sandboxScreen(app: App): Screen {
         ToolButton('cw', t('tool.rotR'), t('game.rotR'), () => rotate(-15)),
         ToolButton('undo', t('tool.undo'), t('game.undo'), () => { if (pl.undo()) { audio.remove(); refresh() } }),
         ToolButton('trash', t('tool.delete'), t('game.delete'), () => { if (pl.removeSelected()) { audio.remove(); refresh() } }),
-        ToolButton('folder', t('tool.save'), t('sb.saveLoad'), () => openSlots()),
+        ToolButton('refresh', t('tool.clear'), t('sb.clear'), () => { if (pl.used) { pl.clear(); pts = []; audio.remove(); refresh(); toast(t('place.cleared'), 'info', 2200) } }),
       )
       const btns = g.querySelectorAll('button')
       btns[2].disabled = !pl.canUndo
       btns[3].disabled = pl.selected < 0
-      // 圖形工具點完需要的點數後，才出現「放好」
-      if (tool !== 'single' && tool !== 'eraser' && pts.length >= POINTS_NEEDED[tool]) {
-        g.append(ToolButton('check', t('tool.place'), t('sb.confirm'), () => confirm(), 'tool-ok'))
-      }
+      btns[4].disabled = !pl.used
       toolbar.append(g, Button({ label: t('btn.push'), icon: 'push', variant: 'primary', class: 'push-btn', onClick: () => startPick() }))
     } else if (phase === 'pick') {
       toolbar.append(h('div', { class: 'tool-group' }, Button({ label: t('common.cancel'), icon: 'close', onClick: () => { phase = 'build'; refreshAll() } })))
@@ -180,7 +206,7 @@ export function sandboxScreen(app: App): Screen {
     const pan = ToolButton('move', t('tool.move'), t('game.panMode'), () => { stage.setPanMode(!stage.panMode); renderCam() })
     if (stage.panMode) pan.classList.add('on')
     pan.setAttribute('aria-pressed', String(stage.panMode))
-    camTools.replaceChildren(top, pan, ToolButton('pause', t('tool.pause'), t('game.pause'), () => openPause()))
+    camTools.replaceChildren(top, pan, ToolButton('folder', t('tool.save'), t('sb.saveLoad'), () => openSlots()), ToolButton('pause', t('tool.pause'), t('game.pause'), () => openPause()))
   }
 
   const renderBanner = () => {
@@ -198,9 +224,9 @@ export function sandboxScreen(app: App): Screen {
   const refreshAll = () => {
     el.replaceChildren(
       h('div', { class: 'sb-col' }, backButton(t('common.home'), () => leave()), info, left),
-      camTools, counter, banner, toolbar,
+      camTools, counter, banner, strip, toolbar,
     )
-    renderInfo(); renderLeft(); renderToolbar(); renderCam(); renderBanner(); renderCounter()
+    renderInfo(); renderLeft(); renderStrip(); renderToolbar(); renderCam(); renderBanner(); renderCounter()
     updatePreview()
   }
 
@@ -256,7 +282,29 @@ export function sandboxScreen(app: App): Screen {
     refresh()
   }
 
+  let dragFrom: DominoSpec | null = null
   const taps = new PointerTaps(stage.renderer.domElement, {
+    dragStart: (x, y, kind) => {
+      if (phase !== 'build' || tool !== 'single' || pl.selected < 0) return false
+      if (stage.pickDomino(x, y, kind === 'touch' ? 22 : 8) !== pl.selected) return false
+      dragFrom = { ...pl.placed[pl.selected] }
+      return true
+    },
+    dragMove: (x, y) => {
+      const p = stage.pick(x, y)
+      if (!p || !dragFrom) return
+      pl.dragTo(p.x, p.z, 0)
+      stage.setDominoes(pl.all())
+    },
+    dragEnd: (moved) => {
+      if (!dragFrom) return
+      const from = dragFrom
+      dragFrom = null
+      if (!moved) return
+      const r = pl.endDrag(from)
+      if (r.ok) audio.place(); else { audio.invalid(); toast(reason(r.reason), 'warn', 1600) }
+      refresh()
+    },
     hover: (x, y) => {
       if (phase !== 'build') return
       const p = stage.pick(x, y)
@@ -297,6 +345,7 @@ export function sandboxScreen(app: App): Screen {
       if (pts.length >= POINTS_NEEDED[tool]) pts = []
       pts.push({ x: p.x, z: p.z })
       hoverPt = null
+      if (pts.length >= POINTS_NEEDED[tool]) { confirm(); return }
       audio.click()
       renderInfo()
       renderToolbar()

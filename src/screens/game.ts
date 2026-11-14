@@ -2,7 +2,7 @@ import type { App, Screen } from '../app'
 import { trackGameEnd, trackGameStart } from '../analytics'
 import { audio, buzz } from '../audio/engine'
 import { starsFor } from '../core/rules'
-import type { Level } from '../core/types'
+import type { DominoSpec, Level } from '../core/types'
 import { Placement } from '../game/placement'
 import { Runner } from '../game/runner'
 import { getSettings, onSettings } from '../game/settings'
@@ -92,10 +92,12 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
         ToolButton('cw', t('tool.rotR'), t('game.rotR'), () => rotate(-15)),
         ToolButton('undo', t('tool.undo'), t('game.undo'), () => { if (pl.undo()) { audio.remove(); refresh() } }),
         ToolButton('trash', t('tool.delete'), t('game.delete'), () => { if (pl.removeSelected()) { audio.remove(); refresh() } }),
+        ToolButton('refresh', t('tool.restart'), t('game.clearAll'), () => { if (pl.used) { pl.clear(); audio.remove(); refresh(); toast(t('place.cleared'), 'info', 2200) } }),
       )
       const btns = edit.querySelectorAll('button')
       btns[2].disabled = !pl.canUndo
       btns[3].disabled = !sel
+      btns[4].disabled = !pl.used
       const push = Button({ label: t('btn.push'), icon: 'push', variant: 'primary', class: 'push-btn', onClick: () => doPush() })
       toolbar.append(edit, push)
     } else if (phase === 'run') {
@@ -194,6 +196,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     refresh()
   }
 
+  let dragFrom: DominoSpec | null = null
   const taps = new PointerTaps(stage.renderer.domElement, {
     hover: (x, y) => {
       if (phase !== 'place' || pl.selected >= 0) return
@@ -226,6 +229,27 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
       const before = pl.used
       commit()
       if (pl.used > before) { pl.selected = pl.used - 1; refresh() }
+    },
+    dragStart: (x, y, kind) => {
+      if (phase !== 'place' || pl.selected < 0) return false
+      if (stage.pickDomino(x, y, kind === 'touch' ? 22 : 8) !== level.dominoes.length + pl.selected) return false
+      dragFrom = { ...pl.placed[pl.selected] }
+      return true
+    },
+    dragMove: (x, y) => {
+      const p = stage.pick(x, y)
+      if (!p || !dragFrom) return
+      pl.dragTo(p.x, p.z, p.y)
+      stage.setDominoes(pl.all())
+    },
+    dragEnd: (moved) => {
+      if (!dragFrom) return
+      const from = dragFrom
+      dragFrom = null
+      if (!moved) return
+      const r = pl.endDrag(from)
+      if (r.ok) { audio.place(); buzz(6) } else { audio.invalid(); toast(reasonText(r.reason), 'warn', 1600) }
+      refresh()
     },
     leave: () => { if (phase === 'place' && pl.ghost && !matchMedia('(pointer: coarse)').matches) { /* 保留預覽 */ } },
   })

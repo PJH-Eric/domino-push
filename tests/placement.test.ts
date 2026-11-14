@@ -67,4 +67,31 @@ describe('擺放', () => {
     const r = pl.rotate(90)
     if (!r.ok) expect(pl.placed[0].a).toBe(before)
   })
+
+  test('拖曳移動：有效位置寫入復原紀錄，無效位置退回原位', () => {
+    const { lv, pl } = fresh()
+    pl.moveGhost(lv.solution[0].x, lv.solution[0].z)
+    expect(pl.commit().ok).toBe(true)
+    pl.selected = 0
+    const from = { ...pl.placed[0] }
+    pl.dragTo(lv.solution[1].x, lv.solution[1].z)
+    expect(pl.endDrag(from).ok).toBe(true)
+    expect(pl.placed[0].x).toBeCloseTo(lv.solution[1].x)
+    expect(pl.undo()).toBe(true)
+    expect(pl.placed[0].x).toBeCloseTo(from.x)
+    pl.selected = 0
+    pl.dragTo(lv.zones[0].x, lv.zones[0].z + 10)
+    expect(pl.endDrag(from).ok).toBe(false)
+    expect(pl.placed[0].z).toBeCloseTo(from.z)
+  })
+
+  test('一鍵重來可以用復原救回', () => {
+    const { lv, pl } = fresh()
+    pl.moveGhost(lv.solution[0].x, lv.solution[0].z)
+    pl.commit()
+    pl.clear()
+    expect(pl.used).toBe(0)
+    expect(pl.undo()).toBe(true)
+    expect(pl.used).toBe(1)
+  })
 })

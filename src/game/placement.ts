@@ -7,6 +7,7 @@ export type Action =
   | { t: 'remove'; index: number; spec: DominoSpec }
   | { t: 'rotate'; index: number; from: number; to: number }
   | { t: 'clear'; list: DominoSpec[] }
+  | { t: 'move'; index: number; from: DominoSpec; to: DominoSpec }
 
 export interface PlacementOpts {
   base: DominoSpec[]
@@ -184,6 +185,26 @@ export class Placement {
     if (this.selected === i) this.selected = -1
   }
 
+  /** 拖曳移動選取的骨牌：拖曳中只改位置不記錄，放開時 endDrag 才寫入復原紀錄 */
+  dragTo(x: number, z: number, y = 0): PlaceResult {
+    const i = this.selected
+    if (i < 0) return { ok: true }
+    const d = { ...this.placed[i], x, z, y: y || undefined }
+    this.placed = this.placed.map((o, k) => (k === i ? d : o))
+    return this.check(d, i)
+  }
+
+  endDrag(from: DominoSpec): PlaceResult {
+    const i = this.selected
+    if (i < 0) return { ok: true }
+    const to = this.placed[i]
+    const r = this.check(to, i)
+    this.placed = this.placed.map((o, k) => (k === i ? from : o))
+    if (!r.ok) return r
+    if (to.x !== from.x || to.z !== from.z || (to.y ?? 0) !== (from.y ?? 0)) this.apply({ t: 'move', index: i, from, to })
+    return r
+  }
+
   clear(): void {
     if (!this.placed.length) return
     this.apply({ t: 'clear', list: this.placed })
@@ -212,6 +233,9 @@ export class Placement {
       case 'clear':
         this.placed = []
         break
+      case 'move':
+        this.placed = this.placed.map((d, i) => (i === a.index ? a.to : d))
+        break
     }
     if (record) {
       this.undoStack.push(a)
@@ -236,6 +260,9 @@ export class Placement {
         break
       case 'clear':
         this.placed = a.list
+        break
+      case 'move':
+        this.placed = this.placed.map((d, i) => (i === a.index ? a.from : d))
         break
     }
     this.redoStack.push(a)
