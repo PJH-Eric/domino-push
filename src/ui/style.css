@@ -574,6 +574,8 @@ h1, h2, h3, p { margin: 0; }
   .kid-colors { flex-wrap: wrap; gap: 6px; padding: 6px; }
   .kid-draw-bar .kid-actions { flex-wrap: wrap; gap: 8px; }
   .kid-draw-bar .kid-push { width: 100%; height: 64px; min-height: 64px; border-radius: 18px; flex-direction: row; }
+}
+
 /* 帶文字的工具鈕：圖示＋短標籤 */
 .tool-btn { flex-direction: column; gap: 2px; min-width: 54px; min-height: 54px; padding: 5px 6px 4px; border-radius: 12px; }
 .tool-btn .icon { width: 22px; height: 22px; }
@@ -611,4 +613,18 @@ h1, h2, h3, p { margin: 0; }
   :is(.game, .sandbox) .hint-bar { left: calc(190px + var(--safe-l)); width: calc(100% - 270px); bottom: calc(84px + var(--safe-b)); }
   .sandbox .sb-tools { bottom: calc(84px + var(--safe-b)); }
 }
+@media (max-width: 640px) and (orientation: portrait) {
+  .sandbox .sb-tools { top: calc(246px + var(--safe-t)); }
+}
+@media (max-width: 380px) and (orientation: portrait) {
+  .sandbox .toolbar .tool-btn { min-width: 40px; }
+  .sandbox .push-btn { min-width: 68px; font-size: 15px; padding: 0 6px; }
+  :is(.game, .sandbox) .toolbar .tool-btn .btn-label { font-size: 9.5px; }
+}
+/* 幼兒園手機：倒下數字放在桌面上方，不壓到標題與上方按鈕 */
+@media (max-width: 640px), (max-height: 500px) and (orientation: landscape) {
+  :is(.kids-draw, .kids-show) .fall-counter.kid-counter { top: calc(var(--kid-top, 108px) + 8px); font-size: 26px; padding: 4px 16px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  :is(.kids-draw, .kids-show) .fall-counter.kid-counter { left: calc((100% - 212px) / 2); }
 }
