@@ -55,6 +55,8 @@ export class App {
 
   constructor(readonly R: R) {
     this.root = document.getElementById('app')!
+    // 清掉 SEO 用的靜態內容（只給搜尋引擎與無 JS 環境看），否則會殘留在遊戲畫面後面
+    this.root.replaceChildren()
     const host = h('div', { class: 'stage-host' })
     this.root.appendChild(host)
     this.stage = new Stage(host)

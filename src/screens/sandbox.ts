@@ -11,7 +11,7 @@ import { loadStats, recordPlaced, recordRun, recordSave, recordShape, sandboxSco
 import { t, type Key } from '../i18n'
 import { h } from '../ui/dom'
 import { icon, type IconName } from '../ui/icons'
-import { Button, IconButton, openModal, ScrollArea, Segmented, TextField, toast, type ModalHandle } from '../ui/kit'
+import { Button, IconButton, ToolButton, openModal, ScrollArea, Segmented, TextField, toast, type ModalHandle } from '../ui/kit'
 import { backButton, confirmBox, mobilePlayLayout, screenEl } from './common'
 import { CHAPTERS } from './levels'
 import { PointerTaps } from './pointer'
@@ -98,6 +98,7 @@ export function sandboxScreen(app: App): Screen {
 
   const renderLeft = () => {
     left.replaceChildren()
+    info.classList.toggle('compact', toolsOpen && phase === 'build')
     if (phase !== 'build') return
     const list = h('div', { class: 'sb-list' })
     list.append(h('div', { class: 'sb-section-title', text: t('sb.tools') }))
@@ -129,6 +130,9 @@ export function sandboxScreen(app: App): Screen {
       stage.setLevel(base, pl.placed)
       refreshAll()
     } }))
+    const clear = Button({ label: t('sb.clear'), icon: 'eraser', size: 'sm', class: 'sb-tool', onClick: () => { if (pl.used) confirmBox({ title: t('sb.clear'), text: t('sb.clearConfirm'), ok: t('sb.clear'), danger: true, onOk: () => { pl.clear(); refresh() } }) } })
+    clear.disabled = !pl.used
+    list.append(h('div', { class: 'sb-section-title', text: t('sb.more') }), clear)
     const toggle = Button({ label: t(toolsOpen ? 'sb.hideTools' : 'sb.showTools'), icon: TOOLS.find((x) => x.id === tool)!.icon, size: 'sm', class: 'sb-toggle', onClick: () => { toolsOpen = !toolsOpen; renderLeft() } })
     toggle.setAttribute('aria-expanded', String(toolsOpen))
     left.append(toggle)
@@ -141,21 +145,19 @@ export function sandboxScreen(app: App): Screen {
     toolbar.replaceChildren()
     if (phase === 'build') {
       const g = h('div', { class: 'tool-group', attrs: { role: 'toolbar', 'aria-label': t('game.tools') } },
-        IconButton('ccw', t('game.rotL'), () => rotate(15)),
-        IconButton('cw', t('game.rotR'), () => rotate(-15)),
-        IconButton('undo', t('game.undo'), () => { if (pl.undo()) { audio.remove(); refresh() } }),
-        IconButton('redo', t('game.redo'), () => { if (pl.redo()) { audio.place(); refresh() } }),
-        IconButton('trash', t('game.delete'), () => { if (pl.removeSelected()) { audio.remove(); refresh() } }),
-        IconButton('check', t('sb.confirm'), () => confirm()),
-        IconButton('folder', t('sb.saveLoad'), () => openSlots()),
-        IconButton('eraser', t('sb.clear'), () => { if (pl.used) confirmBox({ title: t('sb.clear'), text: t('sb.clearConfirm'), ok: t('sb.clear'), danger: true, onOk: () => { pl.clear(); refresh() } }) }),
+        ToolButton('ccw', t('tool.rotL'), t('game.rotL'), () => rotate(15)),
+        ToolButton('cw', t('tool.rotR'), t('game.rotR'), () => rotate(-15)),
+        ToolButton('undo', t('tool.undo'), t('game.undo'), () => { if (pl.undo()) { audio.remove(); refresh() } }),
+        ToolButton('trash', t('tool.delete'), t('game.delete'), () => { if (pl.removeSelected()) { audio.remove(); refresh() } }),
+        ToolButton('folder', t('tool.save'), t('sb.saveLoad'), () => openSlots()),
       )
       const btns = g.querySelectorAll('button')
       btns[2].disabled = !pl.canUndo
-      btns[3].disabled = !pl.canRedo
-      btns[4].disabled = pl.selected < 0
-      btns[5].disabled = tool === 'single' ? !pl.ghost : pts.length < POINTS_NEEDED[tool]
-      btns[7].disabled = !pl.used
+      btns[3].disabled = pl.selected < 0
+      // 圖形工具點完需要的點數後，才出現「放好」
+      if (tool !== 'single' && tool !== 'eraser' && pts.length >= POINTS_NEEDED[tool]) {
+        g.append(ToolButton('check', t('tool.place'), t('sb.confirm'), () => confirm(), 'tool-ok'))
+      }
       toolbar.append(g, Button({ label: t('btn.push'), icon: 'push', variant: 'primary', class: 'push-btn', onClick: () => startPick() }))
     } else if (phase === 'pick') {
       toolbar.append(h('div', { class: 'tool-group' }, Button({ label: t('common.cancel'), icon: 'close', onClick: () => { phase = 'build'; refreshAll() } })))
@@ -172,23 +174,13 @@ export function sandboxScreen(app: App): Screen {
     }
   }
 
-  const panBtn = () => {
-    const b = IconButton('move', t('game.panMode'), () => { stage.setPanMode(!stage.panMode); renderCam() })
-    if (stage.panMode) b.classList.add('on')
-    return b
-  }
-
   const renderCam = () => {
-    const top = IconButton('top', t(topView ? 'game.view3d' : 'game.viewTop'), () => { topView = !topView; stage.fitView(topView); renderCam() })
+    const top = ToolButton('top', t(topView ? 'tool.view3d' : 'tool.top'), t(topView ? 'game.view3d' : 'game.viewTop'), () => { topView = !topView; stage.fitView(topView); renderCam() })
     if (topView) top.classList.add('on')
-    camTools.replaceChildren(
-      IconButton('zoomIn', t('game.zoomIn'), () => stage.zoom(0.8)),
-      IconButton('zoomOut', t('game.zoomOut'), () => stage.zoom(1.25)),
-      top,
-      panBtn(),
-      IconButton('orbit', t('game.resetView'), () => { topView = false; stage.fitView(false); renderCam() }),
-      IconButton('pause', t('game.pause'), () => openPause()),
-    )
+    const pan = ToolButton('move', t('tool.move'), t('game.panMode'), () => { stage.setPanMode(!stage.panMode); renderCam() })
+    if (stage.panMode) pan.classList.add('on')
+    pan.setAttribute('aria-pressed', String(stage.panMode))
+    camTools.replaceChildren(top, pan, ToolButton('pause', t('tool.pause'), t('game.pause'), () => openPause()))
   }
 
   const renderBanner = () => {
@@ -295,9 +287,11 @@ export function sandboxScreen(app: App): Screen {
       if (!p) return
       if (tool === 'single') {
         if (kind === 'mouse') { pl.moveGhost(p.x, p.z, 0); confirm(); return }
-        const g = pl.ghost
-        if (g && Math.hypot(g.x - p.x, g.z - p.z) < 0.45) confirm()
-        else { pl.moveGhost(p.x, p.z, 0); updatePreview(); renderToolbar() }
+        // 觸控：點一下直接放好，並選取剛放的那張
+        pl.moveGhost(p.x, p.z, 0)
+        const before = pl.used
+        confirm()
+        if (pl.used > before) { pl.selected = pl.used - 1; refresh() }
         return
       }
       if (pts.length >= POINTS_NEEDED[tool]) pts = []

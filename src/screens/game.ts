@@ -13,7 +13,7 @@ import { recordRun } from '../storage/records'
 import { t, type Key } from '../i18n'
 import { h } from '../ui/dom'
 import { icon } from '../ui/icons'
-import { Button, IconButton, openModal, toast, type ModalHandle } from '../ui/kit'
+import { Button, IconButton, ToolButton, openModal, toast, type ModalHandle } from '../ui/kit'
 import { CHAPTERS } from './levels'
 import { backButton, mobilePlayLayout, screenEl } from './common'
 import { PointerTaps } from './pointer'
@@ -61,7 +61,7 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
   const banner = h('div', { class: 'pass' })
   const counter = h('div', { class: 'pass' })
   const hintBar = h('div', { class: 'pass' })
-  const popLayer = h('div', { class: 'pass', style: 'position:absolute;inset:0' })
+  const popLayer = h('div', { class: 'pass', style: 'position:absolute;top:0;right:0;bottom:0;left:0' })
 
   const title = () => (isRandom ? t('game.randomTitle', { seed: level.seed ?? 0 }) : `${level.no}. ${t(level.nameKey as Key)}`)
 
@@ -88,18 +88,14 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     if (phase === 'place') {
       const sel = pl.selected >= 0
       const edit = h('div', { class: 'tool-group', attrs: { role: 'toolbar', 'aria-label': t('game.tools') } },
-        IconButton('ccw', t('game.rotL'), () => rotate(15)),
-        IconButton('cw', t('game.rotR'), () => rotate(-15)),
-        IconButton('undo', t('game.undo'), () => { if (pl.undo()) { audio.remove(); refresh() } }),
-        IconButton('redo', t('game.redo'), () => { if (pl.redo()) { audio.place(); refresh() } }),
-        IconButton('trash', t('game.delete'), () => { if (pl.removeSelected()) { audio.remove(); refresh() } }),
-        IconButton('check', t('game.placeHere'), () => commit()),
+        ToolButton('ccw', t('tool.rotL'), t('game.rotL'), () => rotate(15)),
+        ToolButton('cw', t('tool.rotR'), t('game.rotR'), () => rotate(-15)),
+        ToolButton('undo', t('tool.undo'), t('game.undo'), () => { if (pl.undo()) { audio.remove(); refresh() } }),
+        ToolButton('trash', t('tool.delete'), t('game.delete'), () => { if (pl.removeSelected()) { audio.remove(); refresh() } }),
       )
       const btns = edit.querySelectorAll('button')
       btns[2].disabled = !pl.canUndo
-      btns[3].disabled = !pl.canRedo
-      btns[4].disabled = !sel
-      btns[5].disabled = !pl.ghost || sel
+      btns[3].disabled = !sel
       const push = Button({ label: t('btn.push'), icon: 'push', variant: 'primary', class: 'push-btn', onClick: () => doPush() })
       toolbar.append(edit, push)
     } else if (phase === 'run') {
@@ -109,23 +105,17 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
     }
   }
 
-  const panBtn = () => {
-    const b = IconButton('move', t('game.panMode'), () => { stage.setPanMode(!stage.panMode); renderCam() })
-    if (stage.panMode) b.classList.add('on')
-    return b
-  }
-
   const renderCam = () => {
-    const top = IconButton('top', t(topView ? 'game.view3d' : 'game.viewTop'), () => { topView = !topView; stage.fitView(topView); renderCam() })
+    const top = ToolButton('top', t(topView ? 'tool.view3d' : 'tool.top'), t(topView ? 'game.view3d' : 'game.viewTop'), () => { topView = !topView; stage.fitView(topView); renderCam() })
     if (topView) top.classList.add('on')
+    const pan = ToolButton('move', t('tool.move'), t('game.panMode'), () => { stage.setPanMode(!stage.panMode); renderCam() })
+    if (stage.panMode) pan.classList.add('on')
+    pan.setAttribute('aria-pressed', String(stage.panMode))
     camTools.replaceChildren(
-      IconButton('zoomIn', t('game.zoomIn'), () => stage.zoom(0.8)),
-      IconButton('zoomOut', t('game.zoomOut'), () => stage.zoom(1.25)),
       top,
-      panBtn(),
-      IconButton('orbit', t('game.resetView'), () => { topView = false; stage.fitView(false); renderCam() }),
-      IconButton('info', t('game.hint'), () => { hintOpen = !hintOpen; renderHint() }),
-      IconButton('pause', t('game.pause'), () => openPause()),
+      pan,
+      ToolButton('info', t('tool.hint'), t('game.hint'), () => { hintOpen = !hintOpen; renderHint() }),
+      ToolButton('pause', t('tool.pause'), t('game.pause'), () => openPause()),
     )
   }
 
@@ -231,13 +221,11 @@ export function gameScreen(app: App, mode: { level: number } | { seed: number })
         commit()
         return
       }
-      const g = pl.ghost
-      if (g && Math.hypot(g.x - p.x, g.z - p.z) < 0.45 && (g.y ?? 0) === p.y) commit()
-      else {
-        pl.moveGhost(p.x, p.z, p.y)
-        updateGhost()
-        renderToolbar()
-      }
+      // 觸控：點一下直接放好，並選取剛放的那張，方便馬上旋轉或刪除
+      pl.moveGhost(p.x, p.z, p.y)
+      const before = pl.used
+      commit()
+      if (pl.used > before) { pl.selected = pl.used - 1; refresh() }
     },
     leave: () => { if (phase === 'place' && pl.ghost && !matchMedia('(pointer: coarse)').matches) { /* 保留預覽 */ } },
   })

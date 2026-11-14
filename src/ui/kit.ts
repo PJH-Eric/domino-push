@@ -46,6 +46,11 @@ export function IconButton(name: IconName, label: string, onClick: () => void, c
   return Button({ icon: name, ariaLabel: label, title: label, onClick, variant: 'ghost', class: `icon-btn ${cls}` })
 }
 
+/** 工具鈕：圖示下方帶短文字，讓用途一眼看懂 */
+export function ToolButton(name: IconName, label: string, title: string, onClick: () => void, cls = ''): HTMLButtonElement {
+  return Button({ icon: name, label, ariaLabel: title, title, onClick, variant: 'ghost', class: `tool-btn ${cls}` })
+}
+
 /* ───────────── 語言選單：地球鈕＋目前語言徽章，點開列出全部語言 ───────────── */
 
 /** onPick 由呼叫端決定如何套用（寫入設定並重畫畫面）。↑↓ 移動、Esc 關閉、點外面關閉。 */

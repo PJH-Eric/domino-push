@@ -223,7 +223,7 @@ export function kidsGameScreen(app: App, no: number): Screen {
     render()
   }
 
-  const popLayer = h('div', { class: 'pass', style: 'position:absolute;inset:0' })
+  const popLayer = h('div', { class: 'pass', style: 'position:absolute;top:0;right:0;bottom:0;left:0' })
   const popup = (x: number, y: number, z: number, text: string) => {
     if (getSettings().reduceMotion) return
     const p = stage.project(x, y, z)
