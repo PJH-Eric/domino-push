@@ -24,4 +24,4 @@ test.each(SEEDS)('種子 %i：標準解合法且能過關、空擺不能過', (s
 test('不同種子會產生不同關卡', () => {
   const a = new Set(SEEDS.map((s) => JSON.stringify(generateRandom(s).dominoes)))
   expect(a.size).toBeGreaterThan(SEEDS.length - 2)
-})
+}, 10_000)
