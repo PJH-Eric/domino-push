@@ -17,6 +17,7 @@ export const zh = {
   'common.retry': '重新載入',
   'common.starsAria': '{n} 顆星',
 
+  'home.support': '贊助',
   'home.lobby': '遊戲大廳',
   'home.tagline': '擺好木頭骨牌，輕輕一推！',
   'home.challenge': '挑戰模式',

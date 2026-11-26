@@ -40,6 +40,10 @@ export function homeScreen(app: App): Screen {
     el.replaceChildren(
       h('div', { class: 'topleft' },
         h('a', { class: 'btn btn-sm lobby-link', attrs: { href: LOBBY_URL, 'aria-label': t('home.lobby') } }, h('span', { class: 'btn-label', text: t('home.lobby') }))),
+      h('a', {
+        class: 'btn btn-gold home-support',
+        attrs: { href: 'https://portaly.cc/pjh-eric/support', target: '_blank', rel: 'noopener noreferrer' },
+      }, h('span', { attrs: { 'aria-hidden': 'true' }, text: '♥' }), h('span', { text: t('home.support') })),
       ScrollArea({ class: 'home-scroll', label: t('app.title') }, h('div', { class: 'home-card' },
         h('div', { class: 'sign' }, h('h1', { text: t('app.title') }), h('p', { text: t('home.tagline') })),
         h('div', { class: 'home-btns' },

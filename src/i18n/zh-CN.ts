@@ -19,6 +19,7 @@ export const zhCN: Dict = {
   'common.retry': '重新加载',
   'common.starsAria': '{n} 颗星',
 
+  'home.support': '赞助',
   'home.lobby': '游戏大厅',
   'home.tagline': '摆好木头骨牌，轻轻一推！',
   'home.challenge': '挑战模式',

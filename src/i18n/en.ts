@@ -19,6 +19,7 @@ export const en: Dict = {
   'common.retry': 'Reload',
   'common.starsAria': '{n} stars',
 
+  'home.support': 'Sponsor',
   'home.lobby': 'Game lobby',
   'home.tagline': 'Line up wooden dominoes, then give them a push!',
   'home.challenge': 'Challenge',
